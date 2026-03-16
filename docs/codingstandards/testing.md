@@ -61,5 +61,22 @@ Define how this repository verifies behavior with fast frontend tests and Aspire
 ## Repo Notes
 
 - `pnpm test` is the fast suite for Vitest and Testing Library.
+- `pnpm test:watch` is the local watch mode for the same fast suite.
 - `pnpm test:e2e` is the Aspire-backed browser smoke suite and depends on Docker plus Playwright browser installation.
 - `pnpm test:all` is the aggregate local validation path when the machine has the full infra prerequisites.
+- `src/test/render.tsx` and `src/test/setup.ts` are the shared frontend harness seams. Keep test helpers there instead of copy-pasting setup into each test file.
+
+## Running Tests
+
+```bash
+pnpm test
+pnpm test:watch
+pnpm test:e2e:install
+pnpm test:e2e
+pnpm test:all
+```
+
+- Use `pnpm test` for routine frontend unit and component validation.
+- Use `pnpm test:watch` while actively changing UI or route code.
+- Run `pnpm test:e2e:install` once per machine or after Playwright package upgrades.
+- Use `pnpm test:e2e` when changing AppHost wiring, provider setup, route shell behavior, or startup contracts that need a real browser.

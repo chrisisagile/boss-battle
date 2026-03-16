@@ -40,6 +40,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 });
 
+export function AppShellLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <div className="border-white/10 border-b bg-black/20 backdrop-blur">
+        <div className="mx-auto flex h-20 w-full max-w-5xl items-center px-6">
+          <span className="font-semibold text-lg text-stone-200 uppercase tracking-[0.18em]">
+            Boss Battle
+          </span>
+        </div>
+      </div>
+      {children}
+    </>
+  );
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -47,32 +62,27 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-background text-foreground">
-        <div className="border-white/10 border-b bg-black/20 backdrop-blur">
-          <div className="mx-auto flex h-20 w-full max-w-5xl items-center px-6">
-            <span className="font-semibold text-lg text-stone-200 uppercase tracking-[0.18em]">
-              Boss Battle
-            </span>
-          </div>
-        </div>
-        <TanstackQuery.Provider
-          queryClient={Route.useRouteContext().queryClient}
-        >
-          <AppConvexProvider>
-            {children}
-            <TanStackDevtools
-              config={{
-                position: "bottom-right",
-              }}
-              plugins={[
-                {
-                  name: "Tanstack Router",
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-                tanStackQueryDevtools,
-              ]}
-            />
-          </AppConvexProvider>
-        </TanstackQuery.Provider>
+        <AppShellLayout>
+          <TanstackQuery.Provider
+            queryClient={Route.useRouteContext().queryClient}
+          >
+            <AppConvexProvider>
+              {children}
+              <TanStackDevtools
+                config={{
+                  position: "bottom-right",
+                }}
+                plugins={[
+                  {
+                    name: "Tanstack Router",
+                    render: <TanStackRouterDevtoolsPanel />,
+                  },
+                  tanStackQueryDevtools,
+                ]}
+              />
+            </AppConvexProvider>
+          </TanstackQuery.Provider>
+        </AppShellLayout>
         <Scripts />
       </body>
     </html>

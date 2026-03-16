@@ -21,13 +21,17 @@ frontend server, use `pnpm run dev:web`.
 ```bash
 pnpm build
 pnpm test
+pnpm test:watch
+pnpm test:e2e:install
 pnpm test:e2e
+pnpm test:all
 ```
 
 `pnpm test` runs the fast Vitest and Testing Library suite only. It should stay
 Docker-free and deterministic. `pnpm test:e2e` runs the Aspire-backed browser
 smoke suite from `devops/tests/` against the full AppHost graph, including the
-self-hosted Convex stack.
+self-hosted Convex stack. `pnpm test:watch` keeps the fast suite running during
+frontend development, and `pnpm test:all` runs the full fast-plus-E2E path.
 
 Before running `pnpm test:e2e`, make sure:
 
