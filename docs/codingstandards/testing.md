@@ -1,0 +1,65 @@
+---
+title: Testing Standards
+description: Repository policy for fast unit and component tests, Aspire-backed browser smoke tests, naming, and test ownership.
+doc_type: coding_standard
+status: active
+stack:
+  - testing
+  - vitest
+  - testing-library
+  - aspire
+  - playwright
+applies_to:
+  - src/
+  - devops/tests/
+  - package.json
+  - vitest.config.ts
+keywords:
+  - testing
+  - vitest
+  - testing library
+  - playwright
+  - aspire testing
+  - e2e
+  - smoke tests
+---
+
+# Testing Standards
+
+## Purpose
+
+Define how this repository verifies behavior with fast frontend tests and Aspire-backed browser smoke tests.
+
+## Rules
+
+- Must add or update tests when behavior changes.
+- Must keep `pnpm test` fast, isolated, and deterministic. It must not require Docker, Aspire startup, or live Convex services.
+- Must colocate JS unit and component tests as `*.test.ts` or `*.test.tsx` beside the code they verify.
+- Must prefix tests under `src/routes/` with TanStack Router's ignore prefix, such as `-index.test.tsx`, so they stay colocated without becoming route modules.
+- Must keep browser E2E in the Aspire-backed test project under `devops/tests/`, not in ad hoc shell scripts or standalone Node runners.
+- Must route all browser smoke and E2E coverage through Aspire so the environment contract matches the real AppHost graph.
+- Must keep assertions behavioral. Verify rendered output, accessible roles, class-merging behavior, and real page readiness instead of implementation details.
+- Must keep generated files out of test assertions unless generation itself is the behavior under test.
+- Must keep unit and component tests free of hidden network dependencies.
+
+## Preferred Patterns
+
+- Prefer small Vitest tests for pure utilities, route components, and UI primitives.
+- Prefer shared test helpers in `src/test/` for rendering and environment setup.
+- Prefer one Aspire-backed smoke suite that proves the AppHost can boot the web app and serve the home route through a real browser.
+- Prefer polling the real `web-app` endpoint through Aspire-assigned URLs instead of hard-coded localhost ports.
+- Prefer readable test names that describe the user-visible contract.
+
+## Avoid
+
+- Avoid snapshot-heavy test suites for UI that can be asserted more directly.
+- Avoid broad end-to-end coverage as a substitute for fast unit and component tests.
+- Avoid mocking framework internals when a plain render or utility test will do.
+- Avoid asserting on generated route tree output or Convex `_generated` files.
+- Avoid putting slow Docker-dependent tests into Husky pre-commit hooks.
+
+## Repo Notes
+
+- `pnpm test` is the fast suite for Vitest and Testing Library.
+- `pnpm test:e2e` is the Aspire-backed browser smoke suite and depends on Docker plus Playwright browser installation.
+- `pnpm test:all` is the aggregate local validation path when the machine has the full infra prerequisites.

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
-function HomePage() {
+export function HomePage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center px-6 py-16">
       <div className="max-w-3xl">

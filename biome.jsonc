@@ -72,6 +72,16 @@
       "plugins": ["./tools/biome/no-query-client-outside-root-provider.grit"]
     },
     {
+      "includes": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["vite.config.ts"],
       "linter": {
         "rules": {
