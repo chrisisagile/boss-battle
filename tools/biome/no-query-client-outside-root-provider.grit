@@ -1,0 +1,4 @@
+`new $constructor()` where {
+  $constructor <: `QueryClient`,
+  register_diagnostic(span=$constructor, message="Create QueryClient only in src/integrations/tanstack-query/root-provider.tsx.")
+}

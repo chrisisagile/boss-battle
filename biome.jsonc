@@ -1,0 +1,96 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/.aspire",
+      "!src/routeTree.gen.ts",
+      "!convex/_generated"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "nursery": {
+        "useSortedClasses": {
+          "level": "info",
+          "options": {
+            "functions": ["clsx", "cn", "cva"]
+          }
+        }
+      },
+      "style": {
+        "noDefaultExport": "error",
+        "noProcessEnv": "error",
+        "useFilenamingConvention": "error",
+        "useImportType": {
+          "level": "error",
+          "options": {
+            "style": "separatedType"
+          }
+        },
+        "useNamingConvention": "error",
+        "useNodejsImportProtocol": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
+      }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "!src/integrations/tanstack-query/root-provider.tsx",
+        "!src/routeTree.gen.ts"
+      ],
+      "plugins": ["./tools/biome/no-query-client-outside-root-provider.grit"]
+    },
+    {
+      "includes": ["vite.config.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off",
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["vitest.config.ts", "convex/schema.js"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ]
+}
