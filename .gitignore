@@ -1,13 +1,42 @@
 node_modules
 .DS_Store
+
+# JavaScript and TanStack Start build outputs
 dist
 dist-ssr
-*.local
-count.txt
-.env
-.nitro
 .tanstack
-.wrangler
 .output
 .vinxi
+.nitro
+src/routeTree.gen.ts
+
+# Local environment files
+*.local
+.env
+.env.*
+
+# Wrangler and Aspire local state
+.wrangler
+.aspire/
+
+# Convex generated files and local self-hosting state
+convex/_generated/
+devops/convex/
+
+# .NET build outputs
+bin
+obj
+devops/bin/
+devops/obj/
+.vs/
+TestResults/
+*.rsuser
+*.suo
+
+# Local tooling internals
+.husky/_/
+--help/
+
+# Repo-local scratch files
+count.txt
 todos.json
