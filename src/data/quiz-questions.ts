@@ -1,4 +1,10 @@
-export const quizCategories = ["history", "science", "gaming", "myth"] as const;
+export const quizCategories = [
+  "history",
+  "science",
+  "gaming",
+  "myth",
+  "star-trek",
+] as const;
 
 export const quizComplexities = ["easy", "medium", "hard"] as const;
 

@@ -49,3 +49,4 @@ TestResults/
 # Repo-local scratch files
 count.txt
 todos.json
+.env.local

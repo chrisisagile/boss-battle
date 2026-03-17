@@ -40,7 +40,7 @@ describe("HostSessionPage", () => {
     startRoundMock.mockReset();
     hostOverviewMock.mockReturnValue(hostOverviewFixture);
     questionBankSummaryMock.mockReturnValue({
-      availableCategories: ["history", "science"],
+      availableCategories: ["history", "science", "star-trek"],
       availableComplexities: ["easy", "medium"],
       readyQuestionCount: 12,
     });
