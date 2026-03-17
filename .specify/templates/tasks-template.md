@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: The examples below include test tasks. For this repo, behavior-changing work should assume focused integration coverage is required, and browser-visible flow changes should include incremental `pnpm test:e2e` tasks plus issue-response tasks.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -51,6 +51,9 @@ description: "Task list template for feature implementation"
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+- [ ] T003a Review applicable files in `docs/codingstandards/` and capture which standards apply to this feature
+- [ ] T003b If delegated subagents are available and allowed, run a standards-review subagent against the coding standards docs and planned code areas
+- [ ] T003c If the work appears to require editing `docs/codingstandards/`, STOP and ask the user before making any standards changes
 
 ---
 
@@ -85,6 +88,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T011a [US1] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
 
 ### Implementation for User Story 1
 
@@ -94,6 +98,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T016 [US1] Add validation and error handling
 - [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T017a [US1] If delegated subagents are available and allowed, run a standards-review subagent against changed files and address findings before marking the story complete
+- [ ] T017b [US1] Record and respond to any focused integration or E2E failures before starting the next story
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -109,6 +115,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T019a [US2] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
 
 ### Implementation for User Story 2
 
@@ -116,6 +123,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T021 [US2] Implement [Service] in src/services/[service].py
 - [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T023a [US2] If delegated subagents are available and allowed, run a standards-review subagent against changed files and address findings before marking the story complete
+- [ ] T023b [US2] Record and respond to any focused integration or E2E failures before starting the next story
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -131,12 +140,15 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T025a [US3] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
 
 ### Implementation for User Story 3
 
 - [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
 - [ ] T027 [US3] Implement [Service] in src/services/[service].py
 - [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T028a [US3] If delegated subagents are available and allowed, run a standards-review subagent against changed files and address findings before marking the story complete
+- [ ] T028b [US3] Record and respond to any focused integration or E2E failures before finishing the story
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -156,6 +168,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
+- [ ] TXXX Run final repo-wide verification including `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, and `pnpm test:e2e`
+- [ ] TXXX If delegated subagents are available and allowed, run a final standards-review subagent pass against changed code and address relevant findings
 
 ---
 
@@ -179,6 +193,8 @@ Examples of foundational tasks (adjust based on your project):
 ### Within Each User Story
 
 - Tests (if included) MUST be written and FAIL before implementation
+- Focused integration coverage MUST be added or updated for behavior-changing work
+- Browser-visible slices MUST run `pnpm test:e2e` before the slice is considered done
 - Models before services
 - Services before endpoints
 - Core implementation before integration
@@ -217,6 +233,7 @@ Task: "Create [Entity2] model in src/models/[entity2].py"
 2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
 3. Complete Phase 3: User Story 1
 4. **STOP and VALIDATE**: Test User Story 1 independently
+   Run focused integration coverage and `pnpm test:e2e` if the story changes browser-visible flows
 5. Deploy/demo if ready
 
 ### Incremental Delivery
@@ -246,6 +263,8 @@ With multiple developers:
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - Verify tests fail before implementing
+- If delegated subagents are available and allowed, run a standards-review subagent before marking each story complete
+- If coding standards edits appear necessary, stop and ask the user before changing `docs/codingstandards/`
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

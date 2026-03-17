@@ -40,6 +40,15 @@
 [SECTION_3_CONTENT]
 <!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
 
+<!-- Recommended additions for app-style repos:
+- Require focused integration coverage for each major implementation slice
+- Require incremental E2E validation for browser-visible flow changes
+- Require response-to-failure rules before more work continues
+- If delegated subagents are available and allowed, require a standards-review
+  subagent pass against coding standards docs and created code
+- Require explicit user confirmation before editing coding standards docs
+-->
+
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
