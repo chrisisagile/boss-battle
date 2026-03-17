@@ -1,0 +1,304 @@
+{
+  "questions": [
+    {
+      "sourceKey": "science-easy-star-trek-001",
+      "prompt": "Which phrase is commonly associated with Spock?",
+      "choices": [
+        { "id": "a", "text": "Live long and prosper" },
+        { "id": "b", "text": "Make it so" },
+        { "id": "c", "text": "Engage" },
+        { "id": "d", "text": "Resistance is futile" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-002",
+      "prompt": "What is the starship commanded by Captain Jean-Luc Picard in most of The Next Generation?",
+      "choices": [
+        { "id": "a", "text": "USS Voyager" },
+        { "id": "b", "text": "USS Enterprise-D" },
+        { "id": "c", "text": "USS Enterprise-E" },
+        { "id": "d", "text": "USS Defiant" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-003",
+      "prompt": "What organization does Spock serve during his Starfleet career?",
+      "choices": [
+        { "id": "a", "text": "Klingon Empire" },
+        { "id": "b", "text": "The Borg Collective" },
+        { "id": "c", "text": "Starfleet" },
+        { "id": "d", "text": "Cardassian Union" }
+      ],
+      "correctChoiceId": "c",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-004",
+      "prompt": "Which vessel is the center of Star Trek: Voyager?",
+      "choices": [
+        { "id": "a", "text": "USS Enterprise" },
+        { "id": "b", "text": "USS Voyager" },
+        { "id": "c", "text": "USS Defiant" },
+        { "id": "d", "text": "USS Yorktown" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-005",
+      "prompt": "Who is the character most associated with saying, \"Make it so\"?",
+      "choices": [
+        { "id": "a", "text": "Jean-Luc Picard" },
+        { "id": "b", "text": "Kathryn Janeway" },
+        { "id": "c", "text": "Benjamin Sisko" },
+        { "id": "d", "text": "James Kirk" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-006",
+      "prompt": "What is the Klingon homeworld?",
+      "choices": [
+        { "id": "a", "text": "Khitomer" },
+        { "id": "b", "text": "Qo'noS" },
+        { "id": "c", "text": "Vulcan" },
+        { "id": "d", "text": "Romulus" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-easy-star-trek-007",
+      "prompt": "What is Dr. McCoy’s first name?",
+      "choices": [
+        { "id": "a", "text": "Leonard" },
+        { "id": "b", "text": "Jonathan" },
+        { "id": "c", "text": "Christopher" },
+        { "id": "d", "text": "Benjamin" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-001",
+      "prompt": "Which organization introduced the no-win simulation known as the Kobayashi Maru?",
+      "choices": [
+        { "id": "a", "text": "Starfleet Academy" },
+        { "id": "b", "text": "Federation Council" },
+        { "id": "c", "text": "Borg Collective" },
+        { "id": "d", "text": "Cardassian Union" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-002",
+      "prompt": "What role does Odo hold for most of Deep Space Nine?",
+      "choices": [
+        { "id": "a", "text": "Chief Engineer" },
+        { "id": "b", "text": "Head of Security" },
+        { "id": "c", "text": "Chief Medical Officer" },
+        { "id": "d", "text": "Science Officer" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-003",
+      "prompt": "Who is the first officer on the USS Enterprise-D in The Next Generation?",
+      "choices": [
+        { "id": "a", "text": "William Riker" },
+        { "id": "b", "text": "Data" },
+        { "id": "c", "text": "Worf" },
+        { "id": "d", "text": "Geordi La Forge" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-004",
+      "prompt": "Which starship is the NCC-1701 in 23rd-century TV continuity?",
+      "choices": [
+        { "id": "a", "text": "USS Enterprise" },
+        { "id": "b", "text": "USS Voyager" },
+        { "id": "c", "text": "USS Defiant" },
+        { "id": "d", "text": "USS Excelsior" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-005",
+      "prompt": "Which species is the character Worf biologically from?",
+      "choices": [
+        { "id": "a", "text": "Andorian" },
+        { "id": "b", "text": "Klingon" },
+        { "id": "c", "text": "Bajoran" },
+        { "id": "d", "text": "Vulcan" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-006",
+      "prompt": "Who is Captain Janeway’s first officer on Voyager?",
+      "choices": [
+        { "id": "a", "text": "Chakotay" },
+        { "id": "b", "text": "Tom Paris" },
+        { "id": "c", "text": "Kane" },
+        { "id": "d", "text": "B'Elanna Torres" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-medium-star-trek-007",
+      "prompt": "Which position is Geordi La Forge best known for in The Next Generation?",
+      "choices": [
+        { "id": "a", "text": "Chief Medical Officer" },
+        { "id": "b", "text": "Chief Operations Officer" },
+        { "id": "c", "text": "Chief Engineer" },
+        { "id": "d", "text": "Security Chief" }
+      ],
+      "correctChoiceId": "c",
+      "category": "star-trek",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-001",
+      "prompt": "Which episode first introduced the Mirror Universe in the Star Trek films and shows?",
+      "choices": [
+        { "id": "a", "text": "Mirror, Mirror" },
+        { "id": "b", "text": "In a Mirror Darkly" },
+        { "id": "c", "text": "The Mirror's Edge" },
+        { "id": "d", "text": "Beyond the Mirror" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-002",
+      "prompt": "What chemical do Dominion Jem'Hadar soldiers depend on to function in canon?",
+      "choices": [
+        { "id": "a", "text": "Ketracel-white" },
+        { "id": "b", "text": "Duranium" },
+        { "id": "c", "text": "Trilithium" },
+        { "id": "d", "text": "Verteron" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-003",
+      "prompt": "Which species is associated with the joining of a symbiont and a host in one personality?",
+      "choices": [
+        { "id": "a", "text": "Bajoran" },
+        { "id": "b", "text": "Trill" },
+        { "id": "c", "text": "Vulcan" },
+        { "id": "d", "text": "Borg" }
+      ],
+      "correctChoiceId": "b",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-004",
+      "prompt": "What is the name of the concept used by Vulcans to preserve and transfer a being's spiritual essence?",
+      "choices": [
+        { "id": "a", "text": "Katra" },
+        { "id": "b", "text": "The Orb" },
+        { "id": "c", "text": "Bajoran Light" },
+        { "id": "d", "text": "The Soul Key" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-005",
+      "prompt": "In Deep Space Nine, who is known as the Emissary of the Prophets?",
+      "choices": [
+        { "id": "a", "text": "Benjamin Sisko" },
+        { "id": "b", "text": "Kai Winn" },
+        { "id": "c", "text": "Garak" },
+        { "id": "d", "text": "Quark" }
+      ],
+      "correctChoiceId": "a",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "science-hard-star-trek-006",
+      "prompt": "In Star Trek II: The Wrath of Khan, where does the final battle between the Enterprise and Khan’s vessel largely take place?",
+      "choices": [
+        { "id": "a", "text": "Genesis Planet" },
+        { "id": "b", "text": "Bajor" },
+        { "id": "c", "text": "Ceti Alpha V" },
+        { "id": "d", "text": "Qo'noS" }
+      ],
+      "correctChoiceId": "c",
+      "category": "star-trek",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    }
+  ]
+}
