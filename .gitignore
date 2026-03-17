@@ -1,14 +1,22 @@
 node_modules
 .DS_Store
+Thumbs.db
 
 # JavaScript and TanStack Start build outputs
 dist
+build
 dist-ssr
 .tanstack
 .output
 .vinxi
 .nitro
+coverage
 src/routeTree.gen.ts
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
 
 # Local environment files
 *.local

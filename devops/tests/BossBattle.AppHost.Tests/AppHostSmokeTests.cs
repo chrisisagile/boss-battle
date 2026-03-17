@@ -8,7 +8,7 @@ public sealed class AppHostSmokeTests
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(5);
 
     [Fact]
-    public async Task HomePageLoadsInChromiumThroughAspire()
+    public async Task HostAndManualJoinPagesLoadInChromiumThroughAspire()
     {
         using var cts = new CancellationTokenSource(DefaultTimeout);
         var cancellationToken = cts.Token;
@@ -49,9 +49,23 @@ public sealed class AppHostSmokeTests
         Assert.True(response.Ok, "Expected the home route to load successfully in Chromium.");
         Assert.Equal("Boss Battle", await page.TitleAsync());
 
-        await ExpectMainTextAsync(page, "Boss Battle");
-        await ExpectHeadingAsync(page, "Clean application base. No demo routes, no fake data.");
-        await ExpectMainTextAsync(page, "Convex is still wired through AppHost");
+        await ExpectMainTextAsync(page, "Projector Control");
+        await ExpectHeadingAsync(page, "Open the lobby and let the room join in.");
+        await ExpectButtonAsync(page, "Create Session");
+
+        var joinResponse = await page.GotoAsync(
+            new Uri(baseAddress, "/join").ToString(),
+            new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+            });
+
+        Assert.NotNull(joinResponse);
+        Assert.True(joinResponse.Ok, "Expected the manual join route to load successfully in Chromium.");
+
+        await ExpectMainTextAsync(page, "Phone Join");
+        await ExpectHeadingAsync(page, "Enter the code from the projector.");
+        await ExpectButtonAsync(page, "Continue To Join");
     }
 
     private static async Task<Uri> WaitForHomepageAsync(HttpClient httpClient, CancellationToken cancellationToken)
@@ -96,6 +110,13 @@ public sealed class AppHostSmokeTests
         await page
             .GetByRole(AriaRole.Main)
             .GetByText(text)
+            .WaitForAsync();
+    }
+
+    private static async Task ExpectButtonAsync(IPage page, string name)
+    {
+        await page
+            .GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = name, Exact = true })
             .WaitForAsync();
     }
 }
