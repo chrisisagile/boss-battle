@@ -1,0 +1,4 @@
+interface:
+  display_name: "Boss Battle Quiz Author"
+  short_description: "Research and save Boss Battle quiz banks"
+  default_prompt: "Use $boss-battle-quiz-author to research a topic, write Boss Battle quiz questions, and save them into Convex."
