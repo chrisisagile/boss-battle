@@ -14,6 +14,7 @@ import { RoundChapterIntro } from "@/components/join/round-chapter-intro";
 import { Button } from "@/components/ui/8bit/button";
 import {
   getJoinErrorDetails,
+  logBossCatalogSyncFailure,
   logEncounterTransition,
   logHostSessionLoadIssue,
   logJoinStatusFailure,
@@ -24,6 +25,7 @@ import {
   useResolveBattleExchangeMutation,
   useSetJoinStatusMutation,
   useStartEncounterMutation,
+  useSyncDefaultBossCatalogMutation,
 } from "@/integrations/convex/join";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -43,10 +45,13 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
   const questionBankSummary = useQuestionBankSummary();
   const setJoinStatus = useSetJoinStatusMutation();
   const resolveBattleExchange = useResolveBattleExchangeMutation();
+  const syncDefaultBossCatalog = useSyncDefaultBossCatalogMutation();
   const startEncounter = useStartEncounterMutation();
   const [battleError, setBattleError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [startingGame, setStartingGame] = useState(false);
+  const [syncingBossCatalog, setSyncingBossCatalog] = useState(false);
+  const [bossCatalogRetryNonce, setBossCatalogRetryNonce] = useState(0);
   const [introRoundNumber, setIntroRoundNumber] = useState<number | null>(null);
   const [config, setConfig] = useState<LobbyConfigState>({
     questionTarget: 3,
@@ -54,6 +59,8 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
     allowedComplexities: ["easy", "medium", "hard"],
   });
   const previousEncounterStateRef = useRef<string | null>(null);
+  const bossCatalogSyncAttemptedRef = useRef(false);
+  const bossCatalogRetryTimeoutRef = useRef<number | null>(null);
   const activeRound = overview?.activeRound ?? null;
   const partyCombatants = overview?.partyCombatants ?? [];
   const inLobby =
@@ -106,6 +113,68 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
       );
     }
   }, [activeRound]);
+
+  useEffect(() => {
+    return () => {
+      if (bossCatalogRetryTimeoutRef.current !== null) {
+        window.clearTimeout(bossCatalogRetryTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (bossCatalogRetryNonce > 0) {
+      bossCatalogSyncAttemptedRef.current = false;
+    }
+
+    if (
+      bossCatalog &&
+      bossCatalog.length > 0 &&
+      bossCatalogRetryTimeoutRef.current !== null
+    ) {
+      window.clearTimeout(bossCatalogRetryTimeoutRef.current);
+      bossCatalogRetryTimeoutRef.current = null;
+    }
+
+    if (!inLobby || bossCatalog === undefined || bossCatalog.length > 0) {
+      return;
+    }
+
+    if (bossCatalogSyncAttemptedRef.current) {
+      return;
+    }
+
+    bossCatalogSyncAttemptedRef.current = true;
+    setSyncingBossCatalog(true);
+    setBattleError(null);
+
+    void syncDefaultBossCatalog({})
+      .catch((error: unknown) => {
+        const details = getJoinErrorDetails(error);
+        setBattleError(getBattleErrorMessage(details.code, details.message));
+        logBossCatalogSyncFailure({
+          joinCode,
+          message: details.message,
+        });
+        if (bossCatalogRetryTimeoutRef.current !== null) {
+          window.clearTimeout(bossCatalogRetryTimeoutRef.current);
+        }
+        bossCatalogRetryTimeoutRef.current = window.setTimeout(() => {
+          bossCatalogSyncAttemptedRef.current = false;
+          bossCatalogRetryTimeoutRef.current = null;
+          setBossCatalogRetryNonce((current) => current + 1);
+        }, 3000);
+      })
+      .finally(() => {
+        setSyncingBossCatalog(false);
+      });
+  }, [
+    bossCatalog,
+    bossCatalogRetryNonce,
+    inLobby,
+    joinCode,
+    syncDefaultBossCatalog,
+  ]);
 
   useEffect(() => {
     if (!overview) {
@@ -215,7 +284,7 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
           {bossCatalog ? (
             <HostBattleSetup
               bossCatalog={bossCatalog}
-              busy={startingGame}
+              busy={startingGame || syncingBossCatalog}
               errorMessage={battleError}
               onStartEncounter={(bossDefinitionIds) => {
                 setStartingGame(true);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/8bit/button";
 
 interface BossCatalogEntry {
@@ -25,6 +25,18 @@ export function HostBattleSetup({
   const [selectedBossIds, setSelectedBossIds] = useState<string[]>(() =>
     bossCatalog.length > 0 ? [bossCatalog[0]._id] : [],
   );
+
+  useEffect(() => {
+    const eligibleBossIds = new Set(bossCatalog.map((boss) => boss._id));
+    setSelectedBossIds((current) => {
+      const nextSelection = current.filter((id) => eligibleBossIds.has(id));
+      if (nextSelection.length > 0 || bossCatalog.length === 0) {
+        return nextSelection;
+      }
+
+      return [bossCatalog[0]._id];
+    });
+  }, [bossCatalog]);
 
   const selectedCountLabel = useMemo(
     () =>

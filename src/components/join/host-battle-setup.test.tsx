@@ -66,4 +66,23 @@ describe("HostBattleSetup", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("selects the first boss when the catalog loads after an empty state", async () => {
+    const onStartEncounter = vi.fn();
+    const view = renderApp(
+      <HostBattleSetup bossCatalog={[]} onStartEncounter={onStartEncounter} />,
+    );
+
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
+
+    view.rerender(
+      <HostBattleSetup
+        bossCatalog={bossCatalog}
+        onStartEncounter={onStartEncounter}
+      />,
+    );
+
+    expect(screen.getByText("1 boss selected")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeEnabled();
+  });
 });

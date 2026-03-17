@@ -1,3 +1,4 @@
+import { waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderApp, screen } from "@/test/render";
 import {
@@ -6,9 +7,20 @@ import {
 } from "@/test/session-fixtures";
 import { HostSessionPage } from "./$joinCode";
 
+const bossCatalogFixture = [
+  {
+    _id: "boss_1",
+    baseActionPointsPerRound: 2,
+    baseHealth: 18,
+    description: "Retro boss",
+    name: "Static Warden",
+  },
+];
+
 const {
   bossCatalogMock,
   hostOverviewMock,
+  syncDefaultBossCatalogMock,
   questionBankSummaryMock,
   resolveBattleExchangeMock,
   setJoinStatusMock,
@@ -16,6 +28,7 @@ const {
 } = vi.hoisted(() => ({
   bossCatalogMock: vi.fn(),
   hostOverviewMock: vi.fn(),
+  syncDefaultBossCatalogMock: vi.fn(),
   questionBankSummaryMock: vi.fn(),
   resolveBattleExchangeMock: vi.fn(),
   setJoinStatusMock: vi.fn(),
@@ -27,6 +40,7 @@ vi.mock("@/integrations/convex/join", () => ({
     code: null,
     message: "failed",
   }),
+  logBossCatalogSyncFailure: vi.fn(),
   logEncounterTransition: vi.fn(),
   logHostSessionLoadIssue: vi.fn(),
   logJoinStatusFailure: vi.fn(),
@@ -36,6 +50,7 @@ vi.mock("@/integrations/convex/join", () => ({
   useQuestionBankSummary: () => questionBankSummaryMock(),
   useResolveBattleExchangeMutation: () => resolveBattleExchangeMock,
   useSetJoinStatusMutation: () => setJoinStatusMock,
+  useSyncDefaultBossCatalogMutation: () => syncDefaultBossCatalogMock,
   useStartEncounterMutation: () => startEncounterMock,
 }));
 
@@ -43,18 +58,23 @@ describe("HostSessionPage", () => {
   beforeEach(() => {
     bossCatalogMock.mockReset();
     hostOverviewMock.mockReset();
+    syncDefaultBossCatalogMock.mockReset();
     questionBankSummaryMock.mockReset();
     resolveBattleExchangeMock.mockReset();
     setJoinStatusMock.mockReset();
     startEncounterMock.mockReset();
     hostOverviewMock.mockReturnValue(hostOverviewFixture);
-    bossCatalogMock.mockReturnValue([]);
+    bossCatalogMock.mockReturnValue(bossCatalogFixture);
     resolveBattleExchangeMock.mockResolvedValue({
       exchangeId: "exchange_1",
       phase: "action_selection",
       readyToResolve: true,
     });
     setJoinStatusMock.mockResolvedValue(undefined);
+    syncDefaultBossCatalogMock.mockResolvedValue({
+      bossCount: 5,
+      bossNames: ["Cinder", "Gloom", "Rook", "Static", "Titan"],
+    });
     startEncounterMock.mockResolvedValue({
       encounterId: "encounter_1",
       encounterNumber: 1,
@@ -131,6 +151,34 @@ describe("HostSessionPage", () => {
     expect(
       screen.getByRole("button", { name: "Start Game" }),
     ).toBeInTheDocument();
+  });
+
+  it("syncs the default boss catalog and renders a usable start button", async () => {
+    hostOverviewMock.mockReturnValue({
+      ...hostOverviewFixture,
+      gamePhase: "lobby",
+      session: {
+        ...hostOverviewFixture.session,
+        gamePhase: "lobby",
+        activeEncounterId: null,
+        battleJoinStatus: "pre_battle",
+      },
+      encounter: null,
+      partySummary: null,
+      partyCombatants: [],
+      bossLineup: [],
+    });
+    bossCatalogMock.mockReturnValueOnce([]).mockReturnValue(bossCatalogFixture);
+
+    renderApp(<HostSessionPage joinCode="BATTLE" />);
+
+    await waitFor(() => {
+      expect(syncDefaultBossCatalogMock).toHaveBeenCalledTimes(1);
+    });
+    expect(syncDefaultBossCatalogMock).toHaveBeenCalledWith({});
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Start Game" })).toBeEnabled();
+    });
   });
 
   it("lets the host continue a boss-only exchange from the arena", async () => {

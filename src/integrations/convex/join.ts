@@ -66,6 +66,11 @@ interface StartEncounterFailureLogContext {
   message: string;
 }
 
+interface BossCatalogSyncFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
 interface EncounterTransitionLogContext {
   encounterId: string | null;
   joinCode: string;
@@ -145,6 +150,10 @@ export function useBossCatalog() {
   return useQuery(api.battleState.listBossCatalog, {});
 }
 
+export function useSyncDefaultBossCatalogMutation() {
+  return useMutation(api.battleState.syncDefaultBossCatalog);
+}
+
 export function useStartEncounterMutation() {
   return useMutation(api.battleState.startEncounter);
 }
@@ -211,6 +220,15 @@ export function logStartEncounterFailure(
 ) {
   console.error("Failed to start battle encounter.", {
     action: "start_battle_encounter",
+    ...context,
+  });
+}
+
+export function logBossCatalogSyncFailure(
+  context: BossCatalogSyncFailureLogContext,
+) {
+  console.error("Failed to sync the default boss catalog.", {
+    action: "sync_default_boss_catalog",
     ...context,
   });
 }
