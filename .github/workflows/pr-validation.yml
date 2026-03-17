@@ -65,6 +65,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate route tree
+        run: pnpm generate:routes
+
+      - name: Prepare Convex generated artifacts
+        run: bash ./devops/scripts/prepare-convex-ci.sh
+
       - name: Install Playwright browser for Aspire E2E
         run: pnpm test:e2e:install
 
