@@ -6,6 +6,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { ActiveThemeProvider } from "@/components/ui/8bit/active-theme";
+import { ThemeSwitcher } from "@/components/ui/8bit/theme-switcher";
 import { AppConvexProvider } from "../integrations/convex/provider";
 import { tanStackQueryDevtools } from "../integrations/tanstack-query/devtools";
 import * as TanstackQuery from "../integrations/tanstack-query/root-provider";
@@ -26,6 +28,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
+        name: "theme-color",
+        content: "#1f140d",
+      },
+      {
         title: "Boss Battle",
       },
     ],
@@ -33,6 +39,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "96x96",
+        href: "/favicon-96x96.png",
+      },
+      {
+        rel: "icon",
+        href: "/favicon.ico",
+      },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/apple-touch-icon.png",
+      },
+      {
+        rel: "manifest",
+        href: "/site.webmanifest",
       },
     ],
   }),
@@ -42,16 +72,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 export function AppShellLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <div className="border-white/10 border-b bg-black/20 backdrop-blur">
-        <div className="mx-auto flex h-20 w-full max-w-5xl items-center px-6">
-          <span className="font-semibold text-lg text-stone-200 uppercase tracking-[0.18em]">
-            Boss Battle
-          </span>
+    <ActiveThemeProvider>
+      <div className="border-primary/30 border-b bg-black/20 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <span className="retro text-[10px] text-primary uppercase tracking-[0.22em]">
+              Boss Battle
+            </span>
+          </div>
+          <ThemeSwitcher className="lg:justify-end" />
         </div>
       </div>
       {children}
-    </>
+    </ActiveThemeProvider>
   );
 }
 

@@ -2,20 +2,30 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource/dm-sans";
+@import "@fontsource/press-start-2p";
+@import "@fontsource/space-mono";
+@import "@fontsource/vt323";
 
 @custom-variant dark (&:is(.dark *));
 
 html {
-  background:
-    radial-gradient(circle at top, rgba(245, 158, 11, 0.18), transparent 28%),
-    linear-gradient(180deg, #292524 0%, #1c1917 45%, #120f0d 100%);
+  background: var(--background);
 }
 
 body {
   @apply m-0 min-h-screen;
-  font-family:
-    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia,
-    serif;
+  background:
+    radial-gradient(circle at top, var(--arena-glow), transparent 26%),
+    radial-gradient(circle at 20% 20%, var(--arena-glow-soft), transparent 22%),
+    linear-gradient(
+      180deg,
+      var(--arena-surface-start) 0%,
+      var(--arena-surface-mid) 48%,
+      var(--arena-surface-end) 100%
+    );
+  color: var(--foreground);
+  font-family: var(--app-font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -29,6 +39,21 @@ body {
 }
 
 :root {
+  --app-font-sans: "Geist Variable", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --arena-glow: rgba(245, 158, 11, 0.24);
+  --arena-glow-soft: rgba(251, 191, 36, 0.1);
+  --arena-grid-line: rgba(255, 255, 255, 0.05);
+  --arena-surface-start: #3f2616;
+  --arena-surface-mid: #1f140d;
+  --arena-surface-end: #0e0907;
+  --boss-panel: #1c120d;
+  --boss-panel-strong: #100905;
+  --boss-gold: #f59e0b;
+  --boss-gold-soft: #fcd34d;
+  --boss-danger: #fb7185;
+  --boss-success: #86efac;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -63,42 +88,9 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 @theme inline {
-  --font-sans: "Geist Variable", sans-serif;
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -139,12 +131,196 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+.boss-grid {
+  background-image:
+    linear-gradient(var(--arena-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--arena-grid-line) 1px, transparent 1px);
+  background-position: center;
+  background-size: 24px 24px;
+}
+
+.theme-zelda {
+  --app-font-sans: "DM Sans", "Geist Variable", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --arena-glow: rgba(241, 191, 36, 0.32);
+  --arena-glow-soft: rgba(76, 175, 80, 0.18);
+  --arena-grid-line: rgba(241, 191, 36, 0.1);
+  --arena-surface-start: #2f3a20;
+  --arena-surface-mid: #192011;
+  --arena-surface-end: #0d1209;
+  --boss-panel: #1d2414;
+  --boss-panel-strong: #11160b;
+  --boss-gold: #eab308;
+  --boss-gold-soft: #fde047;
+  --boss-danger: #ef4444;
+  --boss-success: #84cc16;
+  --background: oklch(0.15 0.05 120);
+  --foreground: oklch(0.95 0.02 95);
+  --card: oklch(0.12 0.02 20);
+  --card-foreground: oklch(0.95 0.02 95);
+  --popover: oklch(0.12 0.02 20);
+  --popover-foreground: oklch(0.95 0.02 95);
+  --primary: oklch(0.85 0.2 90);
+  --primary-foreground: oklch(0.05 0.02 10);
+  --secondary: oklch(0.35 0.1 120);
+  --secondary-foreground: oklch(0.95 0.02 95);
+  --muted: oklch(0.25 0.02 120);
+  --muted-foreground: oklch(0.8 0.02 95);
+  --accent: oklch(0.9 0.2 90);
+  --accent-foreground: oklch(0.05 0.02 10);
+  --destructive: oklch(0.55 0.25 30);
+  --border: oklch(0.25 0.02 90);
+  --input: oklch(0.25 0.02 90);
+  --ring: oklch(0.85 0.2 90);
+  --sidebar: oklch(0.12 0.02 20);
+  --sidebar-foreground: oklch(0.95 0.02 95);
+  --sidebar-primary: oklch(0.85 0.2 90);
+  --sidebar-primary-foreground: oklch(0.05 0.02 10);
+  --sidebar-accent: oklch(0.5 0.15 120);
+  --sidebar-accent-foreground: oklch(0.95 0.02 95);
+  --sidebar-border: oklch(0.25 0.02 90);
+  --sidebar-ring: oklch(0.85 0.2 90);
+}
+
+.theme-arcade {
+  --app-font-sans: "DM Sans", "Geist Variable", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --arena-glow: rgba(240, 124, 212, 0.3);
+  --arena-glow-soft: rgba(255, 204, 0, 0.18);
+  --arena-grid-line: rgba(240, 124, 212, 0.1);
+  --arena-surface-start: #24133c;
+  --arena-surface-mid: #140b24;
+  --arena-surface-end: #090511;
+  --boss-panel: #1b1030;
+  --boss-panel-strong: #10071d;
+  --boss-gold: #ffcc00;
+  --boss-gold-soft: #ffd966;
+  --boss-danger: #ff5d73;
+  --boss-success: #3ddc97;
+  --background: oklch(0.02 0.01 280);
+  --foreground: oklch(0.98 0.01 280);
+  --card: oklch(0.05 0.02 280);
+  --card-foreground: oklch(0.98 0.01 280);
+  --popover: oklch(0.05 0.02 280);
+  --popover-foreground: oklch(0.98 0.01 280);
+  --primary: oklch(0.8 0.3 320);
+  --primary-foreground: oklch(0.05 0.02 320);
+  --secondary: oklch(0.7 0.25 220);
+  --secondary-foreground: oklch(0.05 0.02 220);
+  --muted: oklch(0.1 0.03 280);
+  --muted-foreground: oklch(0.8 0.1 280);
+  --accent: oklch(0.9 0.3 60);
+  --accent-foreground: oklch(0.05 0.02 60);
+  --destructive: oklch(0.8 0.35 20);
+  --border: oklch(0.8 0.3 320);
+  --input: oklch(0.1 0.03 280);
+  --ring: oklch(0.8 0.3 320);
+  --sidebar: oklch(0.03 0.01 280);
+  --sidebar-foreground: oklch(0.98 0.01 280);
+  --sidebar-primary: oklch(0.8 0.3 320);
+  --sidebar-primary-foreground: oklch(0.05 0.02 320);
+  --sidebar-accent: oklch(0.7 0.25 220);
+  --sidebar-accent-foreground: oklch(0.05 0.02 220);
+  --sidebar-border: oklch(0.8 0.3 320);
+  --sidebar-ring: oklch(0.8 0.3 320);
+}
+
+.theme-pacman {
+  --app-font-sans: "Press Start 2P", system-ui, sans-serif;
+  --app-font-mono: "Press Start 2P", system-ui, sans-serif;
+  --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --arena-glow: rgba(255, 204, 0, 0.28);
+  --arena-glow-soft: rgba(72, 112, 255, 0.16);
+  --arena-grid-line: rgba(72, 112, 255, 0.12);
+  --arena-surface-start: #171f6b;
+  --arena-surface-mid: #0b0f2c;
+  --arena-surface-end: #040611;
+  --boss-panel: #0b0f2c;
+  --boss-panel-strong: #050814;
+  --boss-gold: #ffcc00;
+  --boss-gold-soft: #ffe066;
+  --boss-danger: #ff5a5a;
+  --boss-success: #00e676;
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(0.9451 0.1243 101.5399);
+  --primary-foreground: oklch(0.2857 0.0639 53.8133);
+  --secondary: oklch(0.6231 0.188 259.8145);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.2046 0 0);
+  --muted-foreground: oklch(0.7155 0 0);
+  --accent: oklch(0.3791 0.1378 265.5222);
+  --accent-foreground: oklch(0.9319 0.0316 255.5855);
+  --destructive: oklch(0.5143 0.1978 16.935);
+  --border: oklch(0.4882 0.2172 264.3763);
+  --input: oklch(0.4882 0.2172 264.3763);
+  --ring: oklch(0.7137 0.1434 254.624);
+  --sidebar: oklch(0 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.9451 0.1243 101.5399);
+  --sidebar-primary-foreground: oklch(0.2857 0.0639 53.8133);
+  --sidebar-accent: oklch(0.3791 0.1378 265.5222);
+  --sidebar-accent-foreground: oklch(0.9319 0.0316 255.5855);
+  --sidebar-border: oklch(0.4882 0.2172 264.3763);
+  --sidebar-ring: oklch(0.7137 0.1434 254.624);
+}
+
+.theme-vhs {
+  --app-font-sans: "VT323", "Geist Variable", sans-serif;
+  --app-font-mono: "VT323", monospace;
+  --app-font-display: "VT323", monospace;
+  --arena-glow: rgba(155, 93, 229, 0.26);
+  --arena-glow-soft: rgba(59, 130, 246, 0.16);
+  --arena-grid-line: rgba(59, 130, 246, 0.08);
+  --arena-surface-start: #311942;
+  --arena-surface-mid: #1d0f28;
+  --arena-surface-end: #110815;
+  --boss-panel: #24112e;
+  --boss-panel-strong: #160a1c;
+  --boss-gold: #ff7ad9;
+  --boss-gold-soft: #7dd3fc;
+  --boss-danger: #ef4444;
+  --boss-success: #4ade80;
+  --background: oklch(0.166 0.0254 298.9423);
+  --foreground: oklch(0.9024 0.0604 306.703);
+  --card: oklch(0.1962 0.0365 301.0125);
+  --card-foreground: oklch(0.9024 0.0604 306.703);
+  --popover: oklch(0.1962 0.0365 301.0125);
+  --popover-foreground: oklch(0.9024 0.0604 306.703);
+  --primary: oklch(0.6668 0.2591 322.1499);
+  --primary-foreground: oklch(0.2795 0.0368 260.031);
+  --secondary: oklch(0.6268 0.2325 303.9004);
+  --secondary-foreground: oklch(0.9464 0.0327 307.1745);
+  --muted: oklch(0.2591 0.0611 305.6368);
+  --muted-foreground: oklch(0.7161 0.0091 56.259);
+  --accent: oklch(0.2932 0.1309 325.661);
+  --accent-foreground: oklch(0.833 0.1322 321.4337);
+  --destructive: oklch(0.5246 0.199 3.9582);
+  --border: oklch(0.2905 0.1432 302.7167);
+  --input: oklch(0.2905 0.1432 302.7167);
+  --ring: oklch(0.6847 0.1479 237.3225);
+  --sidebar: oklch(0.166 0.0254 298.9423);
+  --sidebar-foreground: oklch(0.9024 0.0604 306.703);
+  --sidebar-primary: oklch(0.6668 0.2591 322.1499);
+  --sidebar-primary-foreground: oklch(0.2795 0.0368 260.031);
+  --sidebar-accent: oklch(0.2932 0.1309 325.661);
+  --sidebar-accent-foreground: oklch(0.833 0.1322 321.4337);
+  --sidebar-border: oklch(0.2905 0.1432 302.7167);
+  --sidebar-ring: oklch(0.6847 0.1479 237.3225);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
   }
   html {
     @apply font-sans;

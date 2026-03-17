@@ -28,9 +28,8 @@ wait_for_backend() {
 }
 
 extract_admin_key() {
-  docker compose logs backend \
-    | sed -n "s/.*CONVEX_SELF_HOSTED_ADMIN_KEY=\\([^[:space:]]*\\).*/\\1/p" \
-    | tail -n 1
+  docker compose exec -T backend sh -lc "/convex/generate_admin_key.sh" 2>/dev/null \
+    | awk 'NF && $0 !~ /^Admin key:/ { print; exit }'
 }
 
 wait_for_admin_key() {

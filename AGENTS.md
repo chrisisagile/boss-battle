@@ -43,3 +43,10 @@ Current standards set:
 - Keep browser E2E in the Aspire-backed test project under `devops/tests/`.
 - Keep commit messages conventional and sentence-case so commitlint and Husky pass.
 - Prefer focused validation for the area you changed, but call out clearly when the repo has no meaningful automated coverage for that path yet.
+
+## Active Technologies
+- TypeScript 5.7, React 19, TSX + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, shadcn/8bitcn registry, `qrcode.react` (001-qr-game-join)
+- Convex tables for `gameSessions` and `playerEntries`, plus browser `localStorage` for a per-device join identity (001-qr-game-join)
+
+## Recent Changes
+- 001-qr-game-join: Added TypeScript 5.7, React 19, TSX + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, shadcn/8bitcn registry, `qrcode.react`
