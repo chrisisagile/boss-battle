@@ -113,7 +113,7 @@ export function useQuestionBankSummary() {
 }
 
 export function useSyncQuestionBankMutation() {
-  return useMutation(api.quizQuestions.syncQuestionBank);
+  return useMutation(api.quizQuestionLoader.syncQuestionBank);
 }
 
 export function usePlayerQuizState(joinCode: string, deviceId: string) {

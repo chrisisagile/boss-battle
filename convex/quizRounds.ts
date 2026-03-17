@@ -12,10 +12,8 @@ import {
   QUIZ_ANSWER_WINDOW_MS,
   validateRoundConfig,
 } from "./lib/quizValidation";
-import {
-  ensureQuestionBankLoaded,
-  getReadyQuestionsForRules,
-} from "./quizQuestions";
+import { ensureQuestionBankLoaded } from "./quizQuestionLoader";
+import { getReadyQuestionsForRules } from "./quizQuestions";
 
 type QuizAccessCtx = MutationCtx | QueryCtx;
 type PlayerEntryId = Id<"playerEntries">;
