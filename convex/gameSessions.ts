@@ -65,6 +65,7 @@ export const getCurrentActive = query({
       status: activeSession.status,
       joinStatus: activeSession.joinStatus,
       currentRoundNumber: activeSession.currentRoundNumber,
+      activeRoundId: activeSession.activeRoundId,
     };
   },
 });
@@ -92,6 +93,34 @@ export const getHostOverview = query({
       .filter((entry) => entry.joinStatus === "joined")
       .sort((left, right) => left.joinedAt - right.joinedAt);
 
+    const activeRound = session.activeRoundId
+      ? await ctx.db.get(session.activeRoundId)
+      : null;
+    const rounds = await ctx.db
+      .query("gameRounds")
+      .withIndex("by_session", (q) => q.eq("sessionId", session._id))
+      .collect();
+    const latestCompletedRound =
+      rounds
+        .filter((round) => round.status === "completed")
+        .sort((left, right) => right.roundNumber - left.roundNumber)[0] ?? null;
+    const leaderboardAnswers = latestCompletedRound
+      ? await ctx.db
+          .query("quizAnswers")
+          .withIndex("by_round", (q) =>
+            q.eq("roundId", latestCompletedRound._id),
+          )
+          .collect()
+      : [];
+    const leaderboardByPlayer = new Map();
+    for (const answer of leaderboardAnswers) {
+      leaderboardByPlayer.set(
+        answer.playerEntryId,
+        (leaderboardByPlayer.get(answer.playerEntryId) ?? 0) +
+          answer.awardedTokens,
+      );
+    }
+
     return {
       session,
       joinCredential: {
@@ -104,7 +133,30 @@ export const getHostOverview = query({
       lateJoinerCount: roster.filter(
         (entry) => entry.eligibleFromRoundNumber > session.currentRoundNumber,
       ).length,
-      roster,
+      activeRound: activeRound
+        ? {
+            roundNumber: activeRound.roundNumber,
+            status: activeRound.status,
+            questionTarget: activeRound.questionTarget,
+            questionsCompleted: activeRound.questionsCompleted,
+            remainingQuestions:
+              activeRound.questionTarget - activeRound.questionsCompleted,
+            allowedCategories: activeRound.allowedCategories,
+            allowedComplexities: activeRound.allowedComplexities,
+          }
+        : null,
+      leaderboard: latestCompletedRound
+        ? roster.map((entry) => ({
+            id: entry._id,
+            name: entry.displayName,
+            score: leaderboardByPlayer.get(entry._id) ?? 0,
+          }))
+        : [],
+      roster: roster.map((entry) => ({
+        ...entry,
+        tokenBalance: entry.tokenBalance,
+        earnedPoints: leaderboardByPlayer.get(entry._id) ?? 0,
+      })),
     };
   },
 });
@@ -139,6 +191,7 @@ export const resolveJoinableSession = query({
       joinStatus: session.joinStatus,
       currentRoundNumber: session.currentRoundNumber,
       participationWindowStatus: session.participationWindowStatus,
+      activeRoundId: session.activeRoundId,
     };
   },
 });
@@ -154,6 +207,7 @@ export const create = mutation({
       joinStatus: "open",
       currentRoundNumber: 0,
       participationWindowStatus: "idle",
+      activeRoundId: null,
       createdAt: now,
       updatedAt: now,
       closedAt: null,

@@ -24,6 +24,20 @@ export function getJoinErrorMessage(
       return "That display name is already taken in this session.";
     case JOIN_ERROR_CODES.deviceAlreadyJoined:
       return "This device is already attached to the session.";
+    case JOIN_ERROR_CODES.invalidRoundConfig:
+      return "That round configuration is not valid.";
+    case JOIN_ERROR_CODES.insufficientQuestions:
+      return "There are not enough unique quiz questions for that round setup.";
+    case JOIN_ERROR_CODES.noActiveRound:
+      return "The next quiz round has not started yet.";
+    case JOIN_ERROR_CODES.noAssignment:
+      return "There is no active quiz question for this player right now.";
+    case JOIN_ERROR_CODES.assignmentExpired:
+      return "That question expired before it was scored.";
+    case JOIN_ERROR_CODES.duplicateAnswerSubmission:
+      return "That answer was already submitted.";
+    case JOIN_ERROR_CODES.invalidAnswerChoice:
+      return "Pick one of the available answer choices.";
     default:
       return fallback;
   }

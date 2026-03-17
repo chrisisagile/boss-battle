@@ -49,8 +49,8 @@ public sealed class AppHostSmokeTests
         Assert.True(response.Ok, "Expected the home route to load successfully in Chromium.");
         Assert.Equal("Boss Battle", await page.TitleAsync());
 
-        await ExpectMainTextAsync(page, "Projector Control");
-        await ExpectHeadingAsync(page, "Open the lobby and let the room join in.");
+        await ExpectMainTextAsync(page, "Boss Battle Lobby");
+        await ExpectHeadingAsync(page, "Start a Boss Battle session.");
         await ExpectButtonAsync(page, "Create Session");
 
         var joinResponse = await page.GotoAsync(

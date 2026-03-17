@@ -31,6 +31,8 @@ Define the repository-wide rules that apply across frontend code, Convex code, a
 ## Rules
 
 - Must keep TypeScript strict and treat type errors as design errors, not cleanup work for later.
+- Must run `pnpm exec tsc --noEmit` for TypeScript-affecting changes before calling work complete, and Speckit-generated validation guidance must include that command.
+- Must require `pnpm test:e2e` in Speckit-generated validation guidance for features that change user-facing flows, route behavior, AppHost wiring, or Convex-backed runtime interactions.
 - Must keep generated artifacts generated. `src/routeTree.gen.ts` and everything under `convex/_generated/` are outputs, not hand-edited sources.
 - Must keep configuration ownership explicit. Browser-facing values belong in Vite or AppHost wiring, not ad hoc constants spread through `src/`.
 - Must fail fast on missing required configuration, as `src/integrations/convex/provider.tsx` already does for `VITE_CONVEX_URL`.
