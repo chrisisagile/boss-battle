@@ -1,12 +1,17 @@
 <!--
 Sync Impact Report
-Version change: unratified-template -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
 - [PRINCIPLE_1_NAME] -> I. Specification-First Delivery
 - [PRINCIPLE_2_NAME] -> II. Type-Safe Runtime Boundaries
 - [PRINCIPLE_3_NAME] -> III. Testable Vertical Slices
 - [PRINCIPLE_4_NAME] -> IV. Resilient User Experience And Observability
 - [PRINCIPLE_5_NAME] -> V. Cloudflare-Compatible Delivery
+Expanded obligations:
+- Incremental focused integration validation required at each major implementation slice for browser-visible flow changes
+- AppHost E2E validation required at the final implementation-complete gate, with fix-and-rerun response when it fails
+- Standards-review subagent check added when delegated subagents are available and allowed
+- Editing docs/codingstandards now requires an explicit stop and user confirmation
 Added sections:
 - Technical Guardrails
 - Delivery Workflow
@@ -16,6 +21,8 @@ Templates requiring updates:
 - ✅ .specify/templates/plan-template.md
 - ✅ .specify/templates/spec-template.md
 - ✅ .specify/templates/tasks-template.md
+- ✅ .specify/templates/checklist-template.md
+- ✅ .specify/templates/constitution-template.md
 - ✅ README.md
 - ✅ .specify/templates/commands/ (not present; no update required)
 Follow-up TODOs:
@@ -54,6 +61,15 @@ failures remain, they MUST be documented explicitly before merge. Rationale:
 vertical slices keep delivery incremental and prevent scaffold code from
 becoming production behavior without evidence.
 
+For browser-visible host, player, projector, route, or Convex-backed flow
+changes, each major implementation slice MUST run focused integration coverage
+before the slice is considered complete. `pnpm test:e2e` is the final
+implementation-complete gate for those changes, not the default per-slice gate.
+If a focused or E2E check fails, the default response is to investigate and fix
+the failure in that same implementation effort, then rerun the failing command.
+Only failures proven unrelated may be deferred, and they MUST be recorded
+explicitly with the exact failing command and blocking reason.
+
 ### IV. Resilient User Experience And Observability
 New routes, mutations, and asynchronous flows MUST define and implement loading,
 empty, success, and error states. Failures that reach logs or users MUST carry
@@ -75,6 +91,13 @@ recover from failure, or report a useful defect.
   documentation requires direct edits.
 - Package management and task execution MUST use `pnpm`; new top-level tooling
   or parallel build systems require an explicit plan justification.
+- If delegated subagents are available and allowed in the active runtime, every
+  implementation and review workflow MUST run a dedicated standards-review
+  subagent against `docs/codingstandards/` and the created or modified code,
+  then respond to the findings before merge.
+- Changes to `docs/codingstandards/` MUST stop for explicit user confirmation
+  before any edit is made, even when a workflow would otherwise suggest updating
+  those documents.
 
 ## Delivery Workflow
 
@@ -82,14 +105,25 @@ recover from failure, or report a useful defect.
    scenarios, edge cases, and measurable success criteria.
 2. Produce `plan.md` with a Constitution Check that covers typed boundaries,
    validation strategy, tests, user-facing states, observability, runtime
-   constraints, and verification commands.
+   constraints, verification commands, focused per-slice integration gates, and
+   the final E2E gate for browser-visible flows.
 3. Break implementation into `tasks.md` by user story, including tasks for
-   tests, validation, documentation, and operational follow-through when those
-   concerns are affected.
+   tests, validation, documentation, standards review, and operational
+   follow-through when those concerns are affected.
 4. Implement the smallest useful vertical slice first and keep the diff aligned
    to the approved plan.
-5. Before merge, run the affected verification commands, update impacted docs,
-   and record any exceptions, TODOs, or unrelated failures explicitly.
+5. After each major slice, run the slice's focused integration checks and
+   respond to failures before continuing.
+6. When implementation appears complete for a browser-visible or Convex-backed
+   flow change, run `pnpm test:e2e`; if it fails, fix the relevant issue and
+   rerun `pnpm test:e2e` before calling the implementation complete unless the
+   failure is proven unrelated and explicitly documented.
+7. If delegated subagents are available and allowed, run a standards-review
+   subagent against `docs/codingstandards/` and the created code before merge
+   and address any relevant findings.
+8. Before merge, run the affected verification commands, update impacted docs
+   other than `docs/codingstandards/`, and record any exceptions, TODOs, or
+   unrelated failures explicitly.
 
 ## Governance
 
@@ -105,4 +139,4 @@ verify the Constitution Check, required tests, documentation updates, and any
 declared exceptions. Temporary exceptions MUST name an owner, scope, and exit
 condition. Dates MUST use ISO `YYYY-MM-DD`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-15
+**Version**: 1.2.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-17

@@ -51,11 +51,6 @@ interface JoinSubmissionFailureLogContext {
   message: string;
 }
 
-interface StartRoundFailureLogContext {
-  joinCode: string;
-  message: string;
-}
-
 interface QuizAnswerFailureLogContext {
   joinCode: string;
   message: string;
@@ -67,6 +62,11 @@ interface BattleActionFailureLogContext {
 }
 
 interface StartEncounterFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
+interface BossCatalogSyncFailureLogContext {
   joinCode: string;
   message: string;
 }
@@ -146,12 +146,12 @@ export function usePlayerQuizState(joinCode: string, deviceId: string) {
   );
 }
 
-export function useStartRoundMutation() {
-  return useMutation(api.quizRounds.startRound);
-}
-
 export function useBossCatalog() {
   return useQuery(api.battleState.listBossCatalog, {});
+}
+
+export function useSyncDefaultBossCatalogMutation() {
+  return useMutation(api.battleState.syncDefaultBossCatalog);
 }
 
 export function useStartEncounterMutation() {
@@ -162,8 +162,20 @@ export function useSubmitBattleActionMutation() {
   return useMutation(api.battleState.submitPlayerAction);
 }
 
+export function useResolveBattleExchangeMutation() {
+  return useMutation(api.battleState.resolveBattleExchange);
+}
+
+export function useEndGameMutation() {
+  return useMutation(api.gameSessions.endGame);
+}
+
 export function useSubmitQuizAnswerMutation() {
   return useMutation(api.quizAssignments.submitAnswer);
+}
+
+export function useSubmitQuizAnswerBatchMutation() {
+  return useMutation(api.quizAssignments.submitAnswerBatch);
 }
 
 export function logHostSessionLoadIssue(context: HostSessionLoadLogContext) {
@@ -189,13 +201,6 @@ export function logJoinSubmissionFailure(
   });
 }
 
-export function logStartRoundFailure(context: StartRoundFailureLogContext) {
-  console.error("Failed to start quiz round.", {
-    action: "start_quiz_round",
-    ...context,
-  });
-}
-
 export function logQuizAnswerFailure(context: QuizAnswerFailureLogContext) {
   console.error("Failed to submit quiz answer.", {
     action: "submit_quiz_answer",
@@ -215,6 +220,15 @@ export function logStartEncounterFailure(
 ) {
   console.error("Failed to start battle encounter.", {
     action: "start_battle_encounter",
+    ...context,
+  });
+}
+
+export function logBossCatalogSyncFailure(
+  context: BossCatalogSyncFailureLogContext,
+) {
+  console.error("Failed to sync the default boss catalog.", {
+    action: "sync_default_boss_catalog",
     ...context,
   });
 }

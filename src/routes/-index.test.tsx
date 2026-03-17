@@ -19,14 +19,19 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
-vi.mock("@/integrations/convex/join", () => ({
-  getJoinErrorDetails: () => ({
-    code: null,
-    message: "failed",
-  }),
-  useCreateSessionMutation: () => createSessionMock,
-  useCurrentActiveSession: () => currentActiveSessionMock(),
-}));
+vi.mock("@/integrations/convex/join", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/integrations/convex/join")>();
+  return {
+    ...actual,
+    getJoinErrorDetails: () => ({
+      code: null,
+      message: "failed",
+    }),
+    useCreateSessionMutation: () => createSessionMock,
+    useCurrentActiveSession: () => currentActiveSessionMock(),
+  };
+});
 
 describe("HomePage", () => {
   beforeEach(() => {
@@ -67,5 +72,55 @@ describe("HomePage", () => {
         name: "Resume Session",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("creates a session and navigates to the host lobby", async () => {
+    createSessionMock.mockResolvedValue({
+      joinCode: "ABC123",
+    });
+    const { user } = renderApp(<HomePage />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Create Session",
+      }),
+    );
+
+    expect(createSessionMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith({
+      params: { joinCode: "ABC123" },
+      to: "/host/$joinCode",
+    });
+  });
+
+  it("shows an error when session creation fails", async () => {
+    createSessionMock.mockRejectedValue(new Error("failed"));
+    const { user } = renderApp(<HomePage />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Create Session",
+      }),
+    );
+
+    expect(createSessionMock).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("failed")).toBeInTheDocument();
+  });
+
+  it("resumes the current active session from the landing page", async () => {
+    currentActiveSessionMock.mockReturnValue(activeSessionFixture);
+    const { user } = renderApp(<HomePage />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Resume Session",
+      }),
+    );
+
+    expect(navigateMock).toHaveBeenCalledWith({
+      params: { joinCode: activeSessionFixture.joinCode },
+      to: "/host/$joinCode",
+    });
+    expect(createSessionMock).not.toHaveBeenCalled();
   });
 });

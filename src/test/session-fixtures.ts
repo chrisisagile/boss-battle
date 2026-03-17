@@ -5,6 +5,7 @@ export const activeSessionFixture = {
   joinStatus: "open",
   currentRoundNumber: 0,
   participationWindowStatus: "idle",
+  gamePhase: "lobby",
 } as const;
 
 export const inProgressSessionFixture = {
@@ -14,9 +15,11 @@ export const inProgressSessionFixture = {
   joinStatus: "open",
   currentRoundNumber: 3,
   participationWindowStatus: "open",
+  gamePhase: "quiz",
 } as const;
 
 export const activeEncounterFixture = {
+  id: "encounter_1",
   _id: "encounter_1",
   status: "active",
   encounterNumber: 1,
@@ -66,6 +69,7 @@ export const playerCombatantFixture = {
       category: "attack",
       actionPointCost: 1,
       available: true,
+      targetScope: "enemy",
     },
     {
       id: "skill_study",
@@ -73,6 +77,7 @@ export const playerCombatantFixture = {
       category: "study",
       actionPointCost: 2,
       available: true,
+      targetScope: "self",
     },
   ],
 } as const;
@@ -88,6 +93,7 @@ export const hostOverviewFixture = {
     activeRoundId: null,
     activeEncounterId: "encounter_1",
     battleJoinStatus: "active_battle",
+    gamePhase: "quiz",
     createdAt: 1,
     updatedAt: 1,
     closedAt: null,
@@ -101,11 +107,34 @@ export const hostOverviewFixture = {
   },
   joinedPlayerCount: 2,
   lateJoinerCount: 0,
+  lobbyConfig: {
+    selectedBossDefinitionIds: ["boss_1"],
+    selectedBossNames: ["Obsidian Hydra"],
+    questionTarget: 3,
+    allowedCategories: ["history", "science"],
+    allowedComplexities: ["easy", "medium", "hard"],
+    configLockedAt: null,
+  },
   activeRound: null,
   encounter: activeEncounterFixture,
   partySummary: battlePartySummaryFixture,
   bossLineup: [bossCombatantFixture],
+  partyCombatants: [
+    {
+      currentActionPoints: playerCombatantFixture.currentActionPoints,
+      currentHealth: playerCombatantFixture.currentHealth,
+      displayName: playerCombatantFixture.displayName,
+      fallbackSpriteKey: playerCombatantFixture.fallbackSpriteKey,
+      id: playerCombatantFixture.id,
+      maxActionPoints: 3,
+      maxHealth: playerCombatantFixture.maxHealth,
+      roundStatus: "active",
+      state: playerCombatantFixture.state,
+    },
+  ],
   battleJoinStatus: "active_battle",
+  gamePhase: "quiz",
+  results: null,
   leaderboard: [],
   roster: [
     {
@@ -115,6 +144,7 @@ export const hostOverviewFixture = {
       joinStatus: "joined",
       tokenBalance: 0,
       earnedPoints: 0,
+      roundStatus: "active",
     },
     {
       _id: "player_2",
@@ -123,6 +153,7 @@ export const hostOverviewFixture = {
       joinStatus: "joined",
       tokenBalance: 0,
       earnedPoints: 0,
+      roundStatus: "idle",
     },
   ],
 } as const;

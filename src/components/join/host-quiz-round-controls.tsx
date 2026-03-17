@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/8bit/button";
 
 interface HostQuizRoundControlsProps {
@@ -7,11 +7,18 @@ interface HostQuizRoundControlsProps {
   busy?: boolean;
   disabled?: boolean;
   errorMessage?: string | null;
-  onStartRound: (config: {
+  onConfigChange?: (config: {
     allowedCategories: string[];
     allowedComplexities: string[];
     questionTarget: number;
   }) => void;
+  onStartRound?: (config: {
+    allowedCategories: string[];
+    allowedComplexities: string[];
+    questionTarget: number;
+  }) => void;
+  showSubmitButton?: boolean;
+  submitLabel?: string;
 }
 
 export function HostQuizRoundControls({
@@ -20,7 +27,10 @@ export function HostQuizRoundControls({
   busy = false,
   disabled = false,
   errorMessage = null,
+  onConfigChange,
   onStartRound,
+  showSubmitButton = true,
+  submitLabel = "Start Quiz Round",
 }: HostQuizRoundControlsProps) {
   const [questionTarget, setQuestionTarget] = useState("3");
   const [selectedCategories, setSelectedCategories] =
@@ -38,6 +48,19 @@ export function HostQuizRoundControls({
       Number(questionTarget) > 0,
     [formDisabled, questionTarget, selectedCategories, selectedComplexities],
   );
+
+  const config = useMemo(
+    () => ({
+      questionTarget: Number(questionTarget),
+      allowedCategories: selectedCategories,
+      allowedComplexities: selectedComplexities,
+    }),
+    [questionTarget, selectedCategories, selectedComplexities],
+  );
+
+  useEffect(() => {
+    onConfigChange?.(config);
+  }, [config, onConfigChange]);
 
   function toggleValue(
     value: string,
@@ -136,22 +159,18 @@ export function HostQuizRoundControls({
         <p className="text-rose-300 text-sm">{errorMessage}</p>
       ) : null}
 
-      <div className="flex justify-end">
-        <Button
-          font="retro"
-          type="button"
-          disabled={!canStart}
-          onClick={() =>
-            onStartRound({
-              questionTarget: Number(questionTarget),
-              allowedCategories: selectedCategories,
-              allowedComplexities: selectedComplexities,
-            })
-          }
-        >
-          {busy ? "Starting..." : "Start Quiz Round"}
-        </Button>
-      </div>
+      {showSubmitButton && onStartRound ? (
+        <div className="flex justify-end">
+          <Button
+            font="retro"
+            type="button"
+            disabled={!canStart}
+            onClick={() => onStartRound(config)}
+          >
+            {busy ? "Starting..." : submitLabel}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

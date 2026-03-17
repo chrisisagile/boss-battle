@@ -47,4 +47,64 @@ describe("PlayerBattleProfile", () => {
     expect(screen.getByText("Waiting for revival")).toBeInTheDocument();
     expect(screen.getByText(/wait for a heal or revive/i)).toBeInTheDocument();
   });
+
+  it("submits the selected target for targetable skills", async () => {
+    const onUseSkill = vi.fn();
+
+    const { user } = renderApp(
+      <ActiveThemeProvider>
+        <PlayerBattleProfile
+          availableSkills={[...playerCombatantFixture.availableSkills]}
+          availableTargets={[
+            {
+              combatantType: "boss",
+              displayName: "Obsidian Hydra",
+              id: "boss_1",
+            },
+            {
+              combatantType: "boss",
+              displayName: "Neon Lich Overclock",
+              id: "boss_2",
+            },
+          ]}
+          currentActionPoints={playerCombatantFixture.currentActionPoints}
+          currentHealth={playerCombatantFixture.currentHealth}
+          maxActionPoints={3}
+          maxHealth={playerCombatantFixture.maxHealth}
+          name={playerCombatantFixture.displayName}
+          onUseSkill={onUseSkill}
+          state="active"
+        />
+      </ActiveThemeProvider>,
+    );
+
+    await user.selectOptions(screen.getByRole("combobox"), "boss_2");
+    const useButtons = screen.getAllByRole("button", { name: "Use" });
+    await user.click(useButtons[0]);
+
+    expect(onUseSkill).toHaveBeenCalledWith("skill_attack", "boss_2");
+  });
+
+  it("disables targetable skills when no valid targets are available", () => {
+    renderApp(
+      <ActiveThemeProvider>
+        <PlayerBattleProfile
+          availableSkills={[...playerCombatantFixture.availableSkills]}
+          availableTargets={[]}
+          currentActionPoints={playerCombatantFixture.currentActionPoints}
+          currentHealth={playerCombatantFixture.currentHealth}
+          maxActionPoints={3}
+          maxHealth={playerCombatantFixture.maxHealth}
+          name={playerCombatantFixture.displayName}
+          onUseSkill={() => {}}
+          state="active"
+        />
+      </ActiveThemeProvider>,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Use" })[0]).toBeDisabled();
+    expect(
+      screen.getAllByRole("button", { name: "Use" })[1],
+    ).not.toBeDisabled();
+  });
 });

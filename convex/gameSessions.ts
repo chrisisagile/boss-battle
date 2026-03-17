@@ -21,6 +21,10 @@ function getBattleJoinStatus(session: Doc<"gameSessions">) {
   return session.battleJoinStatus ?? "pre_battle";
 }
 
+function getGamePhase(session: Doc<"gameSessions">) {
+  return session.gamePhase ?? "lobby";
+}
+
 async function findSessionByJoinCode(
   ctx: QueryCtx | MutationCtx,
   joinCode: string,
@@ -73,6 +77,7 @@ export const getCurrentActive = query({
       activeRoundId: activeSession.activeRoundId,
       activeEncounterId: activeSession.activeEncounterId ?? null,
       battleJoinStatus: getBattleJoinStatus(activeSession),
+      gamePhase: getGamePhase(activeSession),
     };
   },
 });
@@ -103,6 +108,12 @@ export const getHostOverview = query({
     const activeRound = session.activeRoundId
       ? await ctx.db.get(session.activeRoundId)
       : null;
+    const roundParticipants = activeRound
+      ? await ctx.db
+          .query("roundParticipants")
+          .withIndex("by_round", (q) => q.eq("roundId", activeRound._id))
+          .collect()
+      : [];
     const activeEncounter = session.activeEncounterId
       ? await ctx.db.get(session.activeEncounterId)
       : null;
@@ -139,6 +150,25 @@ export const getHostOverview = query({
       );
     }
 
+    const participationByPlayer = new Map(
+      roundParticipants.map((participant) => [
+        participant.playerEntryId,
+        participant,
+      ]),
+    );
+    const playerCombatants = combatants
+      .filter((combatant) => combatant.combatantType === "player")
+      .sort((left, right) => left.lineupSlot - right.lineupSlot);
+    const selectedBossDefinitions = session.selectedBossDefinitionIds?.length
+      ? (
+          await Promise.all(
+            session.selectedBossDefinitionIds.map((bossId) =>
+              ctx.db.get(bossId),
+            ),
+          )
+        ).filter(Boolean)
+      : [];
+
     return {
       session,
       joinCredential: {
@@ -147,12 +177,24 @@ export const getHostOverview = query({
         qrValue: `/join/${session.joinCode}`,
         isJoinable: session.joinStatus === "open",
       },
+      lobbyConfig: {
+        selectedBossDefinitionIds: session.selectedBossDefinitionIds ?? [],
+        selectedBossNames: selectedBossDefinitions.map((boss) => boss?.name),
+        questionTarget:
+          session.questionTargetPerRound ?? activeRound?.questionTarget ?? null,
+        allowedCategories:
+          session.allowedCategories ?? activeRound?.allowedCategories ?? [],
+        allowedComplexities:
+          session.allowedComplexities ?? activeRound?.allowedComplexities ?? [],
+        configLockedAt: session.configLockedAt ?? null,
+      },
       joinedPlayerCount: roster.length,
       lateJoinerCount: roster.filter(
         (entry) => entry.eligibleFromRoundNumber > session.currentRoundNumber,
       ).length,
       activeRound: activeRound
         ? {
+            id: activeRound._id,
             roundNumber: activeRound.roundNumber,
             status: activeRound.status,
             questionTarget: activeRound.questionTarget,
@@ -161,6 +203,9 @@ export const getHostOverview = query({
               activeRound.questionTarget - activeRound.questionsCompleted,
             allowedCategories: activeRound.allowedCategories,
             allowedComplexities: activeRound.allowedComplexities,
+            exchangeLimit: activeRound.exchangeLimit ?? null,
+            exchangesResolved: activeRound.exchangesResolved ?? 0,
+            phase: activeRound.phase ?? "quiz",
           }
         : null,
       leaderboard: latestCompletedRound
@@ -174,14 +219,21 @@ export const getHostOverview = query({
         ...entry,
         tokenBalance: entry.tokenBalance,
         earnedPoints: leaderboardByPlayer.get(entry._id) ?? 0,
+        roundStatus:
+          participationByPlayer.get(entry._id)?.status ??
+          (entry.eligibleFromRoundNumber > session.currentRoundNumber
+            ? "waiting_next_round"
+            : "idle"),
       })),
       encounter: activeEncounter
         ? {
+            id: activeEncounter._id,
             battleRoundNumber: activeEncounter.battleRoundNumber,
             encounterNumber: activeEncounter.encounterNumber,
             partyCurrentHealth: activeEncounter.partyCurrentHealth,
             partyMaxHealth: activeEncounter.partyMaxHealth,
             status: activeEncounter.status,
+            activeBossCount: activeEncounter.activeBossCount,
           }
         : null,
       partySummary: activeEncounter
@@ -213,7 +265,40 @@ export const getHostOverview = query({
           spriteRef: combatant.spriteRef,
           state: combatant.state,
         })),
+      partyCombatants: playerCombatants.map((combatant) => ({
+        currentActionPoints: combatant.currentActionPoints,
+        currentHealth: combatant.currentHealth,
+        displayName: combatant.displayName,
+        fallbackSpriteKey: combatant.fallbackSpriteKey,
+        id: combatant._id,
+        maxActionPoints: combatant.actionPointsPerRound,
+        maxHealth: combatant.maxHealth,
+        roundStatus: combatant.playerEntryId
+          ? (participationByPlayer.get(combatant.playerEntryId)?.status ??
+            combatant.state)
+          : combatant.state,
+        state: combatant.state,
+      })),
       battleJoinStatus: getBattleJoinStatus(session),
+      gamePhase: getGamePhase(session),
+      results: session.completedAt
+        ? {
+            completionReason: session.completionReason ?? "host_ended",
+            completedAt: session.completedAt,
+            remainingBosses: combatants.filter(
+              (combatant) =>
+                combatant.combatantType === "boss" &&
+                combatant.state !== "defeated",
+            ).length,
+            remainingPlayers: combatants.filter(
+              (combatant) =>
+                combatant.combatantType === "player" &&
+                combatant.state === "active",
+            ).length,
+            roundsCompleted:
+              latestCompletedRound?.roundNumber ?? session.currentRoundNumber,
+          }
+        : null,
     };
   },
 });
@@ -236,10 +321,6 @@ export const resolveJoinableSession = query({
       return { available: false, reason: "completed" as const };
     }
 
-    if (session.joinStatus === "closed") {
-      return { available: false, reason: "closed" as const };
-    }
-
     return {
       available: true as const,
       sessionId: session._id,
@@ -251,6 +332,8 @@ export const resolveJoinableSession = query({
       activeRoundId: session.activeRoundId,
       activeEncounterId: session.activeEncounterId ?? null,
       battleJoinStatus: getBattleJoinStatus(session),
+      gamePhase: getGamePhase(session),
+      joinBlockedReason: session.joinStatus === "closed" ? "closed" : null,
     };
   },
 });
@@ -269,6 +352,12 @@ export const create = mutation({
       activeRoundId: null,
       activeEncounterId: null,
       battleJoinStatus: "pre_battle",
+      gamePhase: "lobby",
+      selectedBossDefinitionIds: [],
+      questionTargetPerRound: undefined,
+      allowedCategories: [],
+      allowedComplexities: [],
+      configLockedAt: null,
       createdAt: now,
       updatedAt: now,
       closedAt: null,
@@ -305,6 +394,13 @@ export const setJoinStatus = mutation({
       );
     }
 
+    if (session.status !== "lobby" || getGamePhase(session) !== "lobby") {
+      createJoinError(
+        JOIN_ERROR_CODES.sessionClosed,
+        "Join status can only change while the room is still in the lobby.",
+      );
+    }
+
     const now = Date.now();
     await ctx.db.patch(args.sessionId, {
       joinStatus: args.joinStatus,
@@ -316,6 +412,47 @@ export const setJoinStatus = mutation({
       sessionId: args.sessionId,
       joinStatus: args.joinStatus,
       closedAt: args.joinStatus === "closed" ? now : null,
+    };
+  },
+});
+
+export const endGame = mutation({
+  args: {
+    sessionId: v.id("gameSessions"),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      createJoinError(
+        JOIN_ERROR_CODES.sessionNotFound,
+        "The requested session could not be found.",
+      );
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(session._id, {
+      status: "completed",
+      joinStatus: "closed",
+      battleJoinStatus: "post_battle",
+      gamePhase: "results",
+      completionReason: "host_ended",
+      completedAt: now,
+      closedAt: now,
+      updatedAt: now,
+    });
+
+    if (session.activeEncounterId) {
+      await ctx.db.patch(session.activeEncounterId, {
+        status: "completed",
+        endedAt: now,
+        lastResolvedAt: now,
+      });
+    }
+
+    return {
+      sessionId: session._id,
+      completionReason: "host_ended" as const,
+      completedAt: now,
     };
   },
 });

@@ -19,7 +19,7 @@ Auto-generated from all feature plans. Last updated: [DATE]
 ### Required Validation
 
 - `pnpm exec tsc --noEmit` for TypeScript, TSX, Convex, and generated client contract changes
-- `pnpm test:e2e` for features that change user-facing flows, route behavior, AppHost wiring, or Convex-backed browser/runtime integration
+- `pnpm test:e2e` as the final implementation-complete gate for features that change user-facing flows, route behavior, AppHost wiring, or Convex-backed browser/runtime integration
 
 ## Code Style
 

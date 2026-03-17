@@ -23,6 +23,25 @@ describe("HostRoster", () => {
     expect(screen.getByText("Ari")).toBeInTheDocument();
     expect(screen.getByText("5 tokens • 2 quiz pts")).toBeInTheDocument();
   });
+
+  it("marks players as ready when their round status is complete", () => {
+    renderApp(
+      <HostRoster
+        currentRoundNumber={2}
+        players={[
+          {
+            _id: "player_1",
+            displayName: "Ari",
+            eligibleFromRoundNumber: 1,
+            roundStatus: "quiz_complete",
+            tokenBalance: 2,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Ready ✓")).toBeInTheDocument();
+  });
 });
 
 describe("QuizPointsLeaderboard", () => {

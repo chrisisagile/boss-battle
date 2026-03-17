@@ -37,7 +37,7 @@ describe("HostBattleSetup", () => {
     await user.click(
       screen.getByRole("checkbox", { name: "Select Ashen Oracle" }),
     );
-    await user.click(screen.getByRole("button", { name: "Start Battle" }));
+    await user.click(screen.getByRole("button", { name: "Start Game" }));
 
     expect(screen.getByText("2 bosses selected")).toBeInTheDocument();
     expect(onStartEncounter).toHaveBeenCalledWith(["boss_1", "boss_2"]);
@@ -59,11 +59,30 @@ describe("HostBattleSetup", () => {
     );
 
     expect(screen.getByText("0 bosses selected")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Battle" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
     expect(
       screen.getByText(
         "Choose at least one eligible boss before starting a battle.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("selects the first boss when the catalog loads after an empty state", async () => {
+    const onStartEncounter = vi.fn();
+    const view = renderApp(
+      <HostBattleSetup bossCatalog={[]} onStartEncounter={onStartEncounter} />,
+    );
+
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
+
+    view.rerender(
+      <HostBattleSetup
+        bossCatalog={bossCatalog}
+        onStartEncounter={onStartEncounter}
+      />,
+    );
+
+    expect(screen.getByText("1 boss selected")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeEnabled();
   });
 });

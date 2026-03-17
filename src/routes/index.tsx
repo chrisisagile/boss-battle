@@ -10,19 +10,36 @@ import {
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
+const CREATE_SESSION_TIMEOUT_MS = 10_000;
+
+function createSessionTimeoutError() {
+  return new Error(
+    "Session creation timed out. Check the Convex connection and try again.",
+  );
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const currentActiveSession = useCurrentActiveSession();
   const createSession = useCreateSessionMutation();
+  const [creatingSession, setCreatingSession] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col justify-center gap-8 px-6 py-12">
       <HostSessionLauncher
         activeJoinCode={currentActiveSession?.joinCode}
+        pending={creatingSession}
         onCreateSession={() => {
+          setCreatingSession(true);
           setErrorMessage(null);
-          void createSession()
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            window.setTimeout(() => {
+              reject(createSessionTimeoutError());
+            }, CREATE_SESSION_TIMEOUT_MS);
+          });
+
+          void Promise.race([createSession(), timeoutPromise])
             .then((result) => {
               void navigate({
                 to: "/host/$joinCode",
@@ -38,6 +55,9 @@ export function HomePage() {
                 action: "create_session",
                 message: details.message,
               });
+            })
+            .finally(() => {
+              setCreatingSession(false);
             });
         }}
         onResumeSession={
