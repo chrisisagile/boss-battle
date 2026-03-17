@@ -1,0 +1,26 @@
+{
+  "defaultTemplate": "general-purpose",
+  "templates": [
+    {
+      "id": "general-purpose",
+      "path": ".agent/pr-writer/templates/general-purpose.md",
+      "match": {
+        "default": true
+      }
+    },
+    {
+      "id": "spec-review",
+      "path": ".agent/pr-writer/templates/spec-review.md",
+      "match": {
+        "pathsAny": ["specs/**", ".specify/**"]
+      }
+    },
+    {
+      "id": "ai-agent-review",
+      "path": ".agent/pr-writer/templates/ai-agent-review.md",
+      "match": {
+        "pathsAny": ["AGENTS.md", ".specify/**", ".agent/**"]
+      }
+    }
+  ]
+}

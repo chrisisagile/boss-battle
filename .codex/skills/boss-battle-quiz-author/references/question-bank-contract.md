@@ -12,7 +12,7 @@ Use this reference when creating or saving quiz content for the Boss Battle repo
 
 ## Question shape
 
-Persist questions through the `quizQuestions` table and `quizQuestions.upsertQuestionBank` mutation.
+Persist questions through the `quizQuestions` table and the `quizQuestionAuthoring.upsertQuestionBank` mutation in the active code path for this repo.
 
 Each question object must have:
 

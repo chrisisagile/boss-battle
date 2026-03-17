@@ -108,6 +108,10 @@ async function loadPayload(filePath) {
 }
 
 async function runConvex(payload, options) {
+  const functionNames = [
+    "quizQuestionAuthoring.upsertQuestionBank",
+    "quizQuestions.upsertQuestionBank",
+  ];
   const commandArgs = ["exec", "convex", "run"];
 
   if (options.push) {
@@ -118,25 +122,45 @@ async function runConvex(payload, options) {
     commandArgs.push("--prod");
   }
 
-  commandArgs.push("quizQuestions.upsertQuestionBank", JSON.stringify(payload));
+  let lastError;
 
-  await new Promise((resolve, reject) => {
-    const child = spawn("pnpm", commandArgs, {
-      cwd: process.cwd(),
-      env: process.env,
-      stdio: "inherit",
-    });
+  for (const publicFunction of functionNames) {
+    const fullArgs = [...commandArgs, publicFunction, JSON.stringify(payload)];
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn("pnpm", fullArgs, {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: "inherit",
+        });
 
-    child.on("exit", (code) => {
-      if (code === 0) {
-        resolve(undefined);
-        return;
-      }
+        child.on("exit", (code) => {
+          if (code === 0) {
+            resolve(undefined);
+            return;
+          }
 
-      reject(new Error(`convex run exited with status ${code ?? "unknown"}`));
-    });
-    child.on("error", reject);
-  });
+          reject(
+            new Error(
+              `convex run (${publicFunction}) exited with status ${
+                code ?? "unknown"
+              }`,
+            ),
+          );
+        });
+        child.on("error", reject);
+      });
+      return;
+    } catch (error) {
+      lastError = error;
+      console.error(String(error?.message ?? error));
+      continue;
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
 }
 
 async function main() {
