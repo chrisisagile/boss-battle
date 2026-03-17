@@ -7,14 +7,18 @@ import {
 import { HostSessionPage } from "./$joinCode";
 
 const {
+  bossCatalogMock,
   hostOverviewMock,
   questionBankSummaryMock,
   setJoinStatusMock,
+  startEncounterMock,
   startRoundMock,
 } = vi.hoisted(() => ({
+  bossCatalogMock: vi.fn(),
   hostOverviewMock: vi.fn(),
   questionBankSummaryMock: vi.fn(),
   setJoinStatusMock: vi.fn(),
+  startEncounterMock: vi.fn(),
   startRoundMock: vi.fn(),
 }));
 
@@ -23,22 +27,29 @@ vi.mock("@/integrations/convex/join", () => ({
     code: null,
     message: "failed",
   }),
+  logEncounterTransition: vi.fn(),
   logHostSessionLoadIssue: vi.fn(),
   logJoinStatusFailure: vi.fn(),
+  logStartEncounterFailure: vi.fn(),
   logStartRoundFailure: vi.fn(),
+  useBossCatalog: () => bossCatalogMock(),
   useHostOverview: () => hostOverviewMock(),
   useQuestionBankSummary: () => questionBankSummaryMock(),
   useSetJoinStatusMutation: () => setJoinStatusMock,
+  useStartEncounterMutation: () => startEncounterMock,
   useStartRoundMutation: () => startRoundMock,
 }));
 
 describe("HostSessionPage", () => {
   beforeEach(() => {
+    bossCatalogMock.mockReset();
     hostOverviewMock.mockReset();
     questionBankSummaryMock.mockReset();
     setJoinStatusMock.mockReset();
+    startEncounterMock.mockReset();
     startRoundMock.mockReset();
     hostOverviewMock.mockReturnValue(hostOverviewFixture);
+    bossCatalogMock.mockReturnValue([]);
     questionBankSummaryMock.mockReturnValue({
       availableCategories: ["history", "science", "star-trek"],
       availableComplexities: ["easy", "medium"],
@@ -92,6 +103,13 @@ describe("HostSessionPage", () => {
   });
 
   it("renders round controls when no round is active", () => {
+    hostOverviewMock.mockReturnValue({
+      ...hostOverviewFixture,
+      encounter: null,
+      partySummary: null,
+      bossLineup: [],
+    });
+
     renderApp(<HostSessionPage joinCode="BATTLE" />);
 
     expect(screen.getByText("Quiz Round Controls")).toBeInTheDocument();

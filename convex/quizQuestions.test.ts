@@ -36,6 +36,17 @@ describe("quizQuestions", () => {
     expect(validateQuizQuestionWrite(createQuestion())).toBeNull();
   });
 
+  it("accepts supported custom categories", () => {
+    expect(
+      validateQuizQuestionWrite(
+        createQuestion({
+          sourceKey: "planetary-science-medium-atmospheres-001",
+          category: "planetary-science",
+        }),
+      ),
+    ).toBeNull();
+  });
+
   it("rejects unsupported categories", () => {
     expect(
       validateQuizQuestionWrite(

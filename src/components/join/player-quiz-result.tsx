@@ -7,7 +7,7 @@ import {
 
 interface PlayerQuizResultProps {
   awardedTokens: number;
-  evaluationResult: "correct" | "incorrect";
+  evaluationResult: "correct" | "incorrect" | "expired" | "invalid";
   tokenBalance: number;
 }
 

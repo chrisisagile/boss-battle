@@ -154,7 +154,6 @@ async function runConvex(payload, options) {
     } catch (error) {
       lastError = error;
       console.error(String(error?.message ?? error));
-      continue;
     }
   }
 

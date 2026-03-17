@@ -51,6 +51,8 @@ Current standards set:
 - Convex tables for `gameSessions` and `playerEntries`, plus browser `localStorage` for a per-device join identity (001-qr-game-join)
 - TypeScript 5.7, React 19, Convex functions in JavaScript + TanStack Start, TanStack Router, TanStack Query, Tailwind CSS v4, Convex, `@convex-dev/react-query`, Cloudflare/Wrangler (002-quiz-token-awards)
 - Convex tables for sessions, rounds, question bank, assignments, answers, and player token balances; browser local storage for player device identity (002-quiz-token-awards)
+- TypeScript 5.7, React 19, Convex functions in JavaScript + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, Cloudflare/Wrangler, owned shadcn/8bitcn UI including `PlayerProfileCard` plus repo-owned wrappers for `Character Sheet`, `Enemy Health Display`, `Mana Bar`, and `Health Bar` (003-persistent-battle-state)
+- Convex tables for sessions, player entries, boss catalog, encounter state, combatant state, and skill definitions; browser `localStorage` only for per-device join identity (003-persistent-battle-state)
 
 ## Recent Changes
 - 001-qr-game-join: Added TypeScript 5.7, React 19, TSX + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, shadcn/8bitcn registry, `qrcode.react`

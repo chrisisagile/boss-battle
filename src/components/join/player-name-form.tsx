@@ -30,6 +30,14 @@ export function PlayerNameForm({
         onSubmit(displayName.trim());
       }}
     >
+      <div>
+        <p className="retro text-[10px] text-amber-200 uppercase tracking-[0.24em]">
+          Join Battle
+        </p>
+        <p className="mt-2 text-sm text-stone-300 leading-6">
+          Pick the name the host will see on the live roster.
+        </p>
+      </div>
       <label className="block">
         <span className="retro text-[10px] text-amber-200 uppercase tracking-[0.24em]">
           Display Name

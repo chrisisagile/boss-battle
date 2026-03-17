@@ -29,3 +29,40 @@ export function createInProgressSessionFixture() {
     completedAt: null,
   } as const;
 }
+
+export function createBossDefinitionFixture() {
+  const now = Date.now();
+
+  return {
+    name: "Obsidian Hydra",
+    description: "A many-headed boss that grows more dangerous with the room.",
+    baseHealth: 24,
+    baseActionPointsPerRound: 2,
+    scalingProfile: {
+      healthPerPlayer: 3,
+      actionPointsPerPlayerThreshold: 4,
+      bonusActionPoints: 1,
+    },
+    skillIds: [],
+    defaultSpriteRef: null,
+    status: "ready",
+    createdAt: now,
+    updatedAt: now,
+  } as const;
+}
+
+export function createBattleEncounterFixture() {
+  const now = Date.now();
+
+  return {
+    status: "active",
+    encounterNumber: 1,
+    battleRoundNumber: 1,
+    partyMaxHealth: 30,
+    partyCurrentHealth: 26,
+    activeBossCount: 1,
+    startedAt: now,
+    endedAt: null,
+    lastResolvedAt: now,
+  } as const;
+}

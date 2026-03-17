@@ -1,0 +1,304 @@
+{
+  "questions": [
+    {
+      "sourceKey": "history-easy-dotnet-history-001",
+      "prompt": "Which company created .NET?",
+      "choices": [
+        { "id": "a", "text": "Sun Microsystems" },
+        { "id": "b", "text": "Microsoft" },
+        { "id": "c", "text": "IBM" },
+        { "id": "d", "text": "Oracle" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-002",
+      "prompt": "In what year was the first version of .NET released?",
+      "choices": [
+        { "id": "a", "text": "1999" },
+        { "id": "b", "text": "2002" },
+        { "id": "c", "text": "2005" },
+        { "id": "d", "text": "2008" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-003",
+      "prompt": "The first .NET release shipped as part of which IDE family?",
+      "choices": [
+        { "id": "a", "text": "Visual Studio .NET" },
+        { "id": "b", "text": "Eclipse" },
+        { "id": "c", "text": "Xcode" },
+        { "id": "d", "text": "Delphi" }
+      ],
+      "correctChoiceId": "a",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-004",
+      "prompt": "Which web framework launched as the next generation of Active Server Pages?",
+      "choices": [
+        { "id": "a", "text": "Silverlight" },
+        { "id": "b", "text": "WCF" },
+        { "id": "c", "text": "ASP.NET" },
+        { "id": "d", "text": "Blazor" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-005",
+      "prompt": "What runtime executes managed .NET Framework applications?",
+      "choices": [
+        { "id": "a", "text": "JVM" },
+        { "id": "b", "text": "CLR" },
+        { "id": "c", "text": "V8" },
+        { "id": "d", "text": "CPython" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-006",
+      "prompt": "What word in the old name \".NET Core\" was dropped when Microsoft released .NET 5?",
+      "choices": [
+        { "id": "a", "text": "Framework" },
+        { "id": "b", "text": "Runtime" },
+        { "id": "c", "text": "Core" },
+        { "id": "d", "text": "Studio" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-easy-dotnet-history-007",
+      "prompt": "Which branding replaced \".NET Core\" beginning with version 5?",
+      "choices": [
+        { "id": "a", "text": ".NET" },
+        { "id": "b", "text": "CLR" },
+        { "id": "c", "text": "Visual .NET" },
+        { "id": "d", "text": ".NET Framework Core" }
+      ],
+      "correctChoiceId": "a",
+      "category": "history",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-001",
+      "prompt": "Which .NET Framework version introduced generics?",
+      "choices": [
+        { "id": "a", "text": "1.1" },
+        { "id": "b", "text": "2.0" },
+        { "id": "c", "text": "3.0" },
+        { "id": "d", "text": "4.0" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-002",
+      "prompt": "Which .NET Framework version introduced LINQ?",
+      "choices": [
+        { "id": "a", "text": "2.0" },
+        { "id": "b", "text": "3.0" },
+        { "id": "c", "text": "3.5" },
+        { "id": "d", "text": "4.5" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-003",
+      "prompt": "Which .NET Framework version added the async and await era for mainstream app code?",
+      "choices": [
+        { "id": "a", "text": "3.5" },
+        { "id": "b", "text": "4.0" },
+        { "id": "c", "text": "4.5" },
+        { "id": "d", "text": "4.8" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-004",
+      "prompt": "In what year did Microsoft announce that .NET Core would be open source?",
+      "choices": [
+        { "id": "a", "text": "2010" },
+        { "id": "b", "text": "2012" },
+        { "id": "c", "text": "2014" },
+        { "id": "d", "text": "2016" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-005",
+      "prompt": "On what date did .NET Core 1.0 reach general availability?",
+      "choices": [
+        { "id": "a", "text": "June 27, 2016" },
+        { "id": "b", "text": "November 12, 2014" },
+        { "id": "c", "text": "September 23, 2019" },
+        { "id": "d", "text": "November 10, 2020" }
+      ],
+      "correctChoiceId": "a",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-006",
+      "prompt": "What standard was introduced to reduce API fragmentation across .NET implementations?",
+      "choices": [
+        { "id": "a", "text": ".NET Compact" },
+        { "id": "b", "text": ".NET Standard" },
+        { "id": "c", "text": "Portable CLR" },
+        { "id": "d", "text": "Common API Pack" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-medium-dotnet-history-007",
+      "prompt": "Which release first brought Windows Forms and WPF support to .NET Core?",
+      "choices": [
+        { "id": "a", "text": ".NET Core 1.1" },
+        { "id": "b", "text": ".NET Core 2.1" },
+        { "id": "c", "text": ".NET Core 3.0" },
+        { "id": "d", "text": ".NET 5" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-001",
+      "prompt": "Which release was described as the first step on the journey to one .NET?",
+      "choices": [
+        { "id": "a", "text": ".NET Core 3.1" },
+        { "id": "b", "text": ".NET 5" },
+        { "id": "c", "text": ".NET 6" },
+        { "id": "d", "text": ".NET 8" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-002",
+      "prompt": "Which release completed the unification of the Mono runtime into the modern .NET platform?",
+      "choices": [
+        { "id": "a", "text": ".NET Core 3.1" },
+        { "id": "b", "text": ".NET 5" },
+        { "id": "c", "text": ".NET 6" },
+        { "id": "d", "text": ".NET 7" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-003",
+      "prompt": "What is the latest version number of the classic .NET Framework product line?",
+      "choices": [
+        { "id": "a", "text": "4.7.2" },
+        { "id": "b", "text": "4.8" },
+        { "id": "c", "text": "4.8.1" },
+        { "id": "d", "text": "5.0" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-004",
+      "prompt": "Which .NET Standard version shipped with .NET Core 2.0 and support in .NET Framework 4.6.1 and later?",
+      "choices": [
+        { "id": "a", "text": "1.3" },
+        { "id": "b", "text": "1.6" },
+        { "id": "c", "text": "2.0" },
+        { "id": "d", "text": "2.1" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-005",
+      "prompt": "Which release became the first long-term support version under the simplified unified \".NET\" name?",
+      "choices": [
+        { "id": "a", "text": ".NET 5" },
+        { "id": "b", "text": ".NET 6" },
+        { "id": "c", "text": ".NET 7" },
+        { "id": "d", "text": ".NET 8" }
+      ],
+      "correctChoiceId": "b",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "history-hard-dotnet-history-006",
+      "prompt": "Which 2023 release highlighted Native AOT and a new full stack Blazor model?",
+      "choices": [
+        { "id": "a", "text": ".NET 6" },
+        { "id": "b", "text": ".NET 7" },
+        { "id": "c", "text": ".NET 8" },
+        { "id": "d", "text": ".NET 9" }
+      ],
+      "correctChoiceId": "c",
+      "category": "history",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    }
+  ]
+}

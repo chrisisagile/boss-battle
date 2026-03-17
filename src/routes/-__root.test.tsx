@@ -13,6 +13,7 @@ describe("AppShellLayout", () => {
     );
 
     expect(screen.getByText("Boss Battle")).toBeInTheDocument();
+    expect(screen.getByText("Theme")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 1, name: "Round setup" }),
     ).toBeInTheDocument();

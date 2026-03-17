@@ -8,11 +8,13 @@ import {
 import { JoinByCodePage } from "./$joinCode";
 
 const {
+  submitBattleActionMock,
   joinSessionMock,
   joinableSessionMock,
   playerQuizStateMock,
   submitQuizAnswerMock,
 } = vi.hoisted(() => ({
+  submitBattleActionMock: vi.fn(),
   joinSessionMock: vi.fn(),
   joinableSessionMock: vi.fn(),
   playerQuizStateMock: vi.fn(),
@@ -29,17 +31,21 @@ vi.mock("@/integrations/convex/join", async (importOriginal) => {
       code: actual.JOIN_ERROR_CODES.duplicateDisplayName,
       message: "duplicate",
     }),
+    logBattleActionFailure: vi.fn(),
+    logEncounterTransition: vi.fn(),
     logJoinSubmissionFailure: vi.fn(),
     logQuizAnswerFailure: vi.fn(),
     usePlayerQuizState: () => playerQuizStateMock(),
     useJoinSessionMutation: () => joinSessionMock,
     useJoinableSession: () => joinableSessionMock(),
+    useSubmitBattleActionMutation: () => submitBattleActionMock,
     useSubmitQuizAnswerMutation: () => submitQuizAnswerMock,
   };
 });
 
 describe("JoinByCodePage", () => {
   beforeEach(() => {
+    submitBattleActionMock.mockReset();
     joinSessionMock.mockReset();
     joinableSessionMock.mockReset();
     playerQuizStateMock.mockReset();
@@ -51,9 +57,15 @@ describe("JoinByCodePage", () => {
     playerQuizStateMock.mockReturnValue({
       session: activeSessionFixture,
       player: null,
+      playerEntryId: null,
       activeRound: null,
       assignment: null,
       latestResult: null,
+      combatant: null,
+      partySummary: null,
+      availableSkills: [],
+      battleStatus: "pre_battle",
+      joinBlockReason: null,
     });
   });
 
@@ -87,9 +99,15 @@ describe("JoinByCodePage", () => {
     playerQuizStateMock.mockReturnValue({
       session: inProgressSessionFixture,
       player: null,
+      playerEntryId: null,
       activeRound: null,
       assignment: null,
       latestResult: null,
+      combatant: null,
+      partySummary: null,
+      availableSkills: [],
+      battleStatus: "pre_battle",
+      joinBlockReason: null,
     });
     joinSessionMock.mockResolvedValue({
       currentRoundNumber: 3,
@@ -114,8 +132,10 @@ describe("JoinByCodePage", () => {
       player: {
         displayName: "Ari",
         eligibleFromRoundNumber: 1,
+        nextQuizAdvantage: "none",
         tokenBalance: 3,
       },
+      playerEntryId: "player_1",
       activeRound: {
         roundNumber: 3,
         status: "active",
@@ -133,6 +153,11 @@ describe("JoinByCodePage", () => {
         questionNumber: 2,
       },
       latestResult: null,
+      combatant: null,
+      partySummary: null,
+      availableSkills: [],
+      battleStatus: "active_quiz",
+      joinBlockReason: null,
     });
 
     const { user } = renderApp(<JoinByCodePage joinCode="BATTLE" />);

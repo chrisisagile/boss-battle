@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import { createJoinError, JOIN_ERROR_CODES } from "./lib/joinErrors";
@@ -14,6 +15,10 @@ function createJoinCode() {
     { length: 6 },
     () => alphabet[Math.floor(Math.random() * alphabet.length)],
   ).join("");
+}
+
+function getBattleJoinStatus(session: Doc<"gameSessions">) {
+  return session.battleJoinStatus ?? "pre_battle";
 }
 
 async function findSessionByJoinCode(
@@ -66,6 +71,8 @@ export const getCurrentActive = query({
       joinStatus: activeSession.joinStatus,
       currentRoundNumber: activeSession.currentRoundNumber,
       activeRoundId: activeSession.activeRoundId,
+      activeEncounterId: activeSession.activeEncounterId ?? null,
+      battleJoinStatus: getBattleJoinStatus(activeSession),
     };
   },
 });
@@ -96,6 +103,17 @@ export const getHostOverview = query({
     const activeRound = session.activeRoundId
       ? await ctx.db.get(session.activeRoundId)
       : null;
+    const activeEncounter = session.activeEncounterId
+      ? await ctx.db.get(session.activeEncounterId)
+      : null;
+    const combatants = activeEncounter
+      ? await ctx.db
+          .query("combatantStates")
+          .withIndex("by_encounter", (q) =>
+            q.eq("encounterId", activeEncounter._id),
+          )
+          .collect()
+      : [];
     const rounds = await ctx.db
       .query("gameRounds")
       .withIndex("by_session", (q) => q.eq("sessionId", session._id))
@@ -157,6 +175,45 @@ export const getHostOverview = query({
         tokenBalance: entry.tokenBalance,
         earnedPoints: leaderboardByPlayer.get(entry._id) ?? 0,
       })),
+      encounter: activeEncounter
+        ? {
+            battleRoundNumber: activeEncounter.battleRoundNumber,
+            encounterNumber: activeEncounter.encounterNumber,
+            partyCurrentHealth: activeEncounter.partyCurrentHealth,
+            partyMaxHealth: activeEncounter.partyMaxHealth,
+            status: activeEncounter.status,
+          }
+        : null,
+      partySummary: activeEncounter
+        ? {
+            activePlayers: combatants.filter(
+              (combatant) =>
+                combatant.combatantType === "player" &&
+                combatant.state === "active",
+            ).length,
+            currentHealth: activeEncounter.partyCurrentHealth,
+            knockedOutPlayers: combatants.filter(
+              (combatant) =>
+                combatant.combatantType === "player" &&
+                combatant.state === "knocked_out",
+            ).length,
+            maxHealth: activeEncounter.partyMaxHealth,
+          }
+        : null,
+      bossLineup: combatants
+        .filter((combatant) => combatant.combatantType === "boss")
+        .sort((left, right) => left.lineupSlot - right.lineupSlot)
+        .map((combatant) => ({
+          currentActionPoints: combatant.currentActionPoints,
+          currentHealth: combatant.currentHealth,
+          displayName: combatant.displayName,
+          fallbackSpriteKey: combatant.fallbackSpriteKey,
+          id: combatant._id,
+          maxHealth: combatant.maxHealth,
+          spriteRef: combatant.spriteRef,
+          state: combatant.state,
+        })),
+      battleJoinStatus: getBattleJoinStatus(session),
     };
   },
 });
@@ -192,6 +249,8 @@ export const resolveJoinableSession = query({
       currentRoundNumber: session.currentRoundNumber,
       participationWindowStatus: session.participationWindowStatus,
       activeRoundId: session.activeRoundId,
+      activeEncounterId: session.activeEncounterId ?? null,
+      battleJoinStatus: getBattleJoinStatus(session),
     };
   },
 });
@@ -208,6 +267,8 @@ export const create = mutation({
       currentRoundNumber: 0,
       participationWindowStatus: "idle",
       activeRoundId: null,
+      activeEncounterId: null,
+      battleJoinStatus: "pre_battle",
       createdAt: now,
       updatedAt: now,
       closedAt: null,
