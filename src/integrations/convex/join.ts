@@ -7,11 +7,19 @@ export const JOIN_ERROR_CODES = {
   invalidJoinCode: "invalid_join_code",
   invalidDisplayName: "invalid_display_name",
   invalidDeviceId: "invalid_device_id",
+  invalidQuestionBankEntry: "invalid_question_bank_entry",
   sessionNotFound: "session_not_found",
   sessionClosed: "session_closed",
   sessionCompleted: "session_completed",
   duplicateDisplayName: "duplicate_display_name",
   deviceAlreadyJoined: "device_already_joined",
+  invalidRoundConfig: "invalid_round_config",
+  insufficientQuestions: "insufficient_questions",
+  noActiveRound: "no_active_round",
+  noAssignment: "no_assignment",
+  assignmentExpired: "assignment_expired",
+  duplicateAnswerSubmission: "duplicate_answer_submission",
+  invalidAnswerChoice: "invalid_answer_choice",
 } as const;
 
 export type JoinErrorCode =
@@ -34,6 +42,16 @@ interface JoinStatusFailureLogContext {
 }
 
 interface JoinSubmissionFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
+interface StartRoundFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
+interface QuizAnswerFailureLogContext {
   joinCode: string;
   message: string;
 }
@@ -90,6 +108,29 @@ export function useJoinSessionMutation() {
   return useMutation(api.playerEntries.join);
 }
 
+export function useQuestionBankSummary() {
+  return useQuery(api.quizQuestions.getQuestionBankSummary, {});
+}
+
+export function useSyncQuestionBankMutation() {
+  return useMutation(api.quizQuestionLoader.syncQuestionBank);
+}
+
+export function usePlayerQuizState(joinCode: string, deviceId: string) {
+  return useQuery(
+    api.quizRounds.getPlayerQuizState,
+    joinCode && deviceId ? { joinCode, deviceId } : "skip",
+  );
+}
+
+export function useStartRoundMutation() {
+  return useMutation(api.quizRounds.startRound);
+}
+
+export function useSubmitQuizAnswerMutation() {
+  return useMutation(api.quizAssignments.submitAnswer);
+}
+
 export function logHostSessionLoadIssue(context: HostSessionLoadLogContext) {
   console.error("Host session overview is unavailable.", {
     action: "host_session_load",
@@ -109,6 +150,20 @@ export function logJoinSubmissionFailure(
 ) {
   console.error("Failed to join session.", {
     action: "join_session",
+    ...context,
+  });
+}
+
+export function logStartRoundFailure(context: StartRoundFailureLogContext) {
+  console.error("Failed to start quiz round.", {
+    action: "start_quiz_round",
+    ...context,
+  });
+}
+
+export function logQuizAnswerFailure(context: QuizAnswerFailureLogContext) {
+  console.error("Failed to submit quiz answer.", {
+    action: "submit_quiz_answer",
     ...context,
   });
 }

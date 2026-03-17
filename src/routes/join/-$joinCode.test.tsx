@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { quizQuestionSeeds } from "@/data/quiz-questions";
 import { renderApp, screen } from "@/test/render";
 import {
   activeSessionFixture,
@@ -6,9 +7,16 @@ import {
 } from "@/test/session-fixtures";
 import { JoinByCodePage } from "./$joinCode";
 
-const { joinSessionMock, joinableSessionMock } = vi.hoisted(() => ({
+const {
+  joinSessionMock,
+  joinableSessionMock,
+  playerQuizStateMock,
+  submitQuizAnswerMock,
+} = vi.hoisted(() => ({
   joinSessionMock: vi.fn(),
   joinableSessionMock: vi.fn(),
+  playerQuizStateMock: vi.fn(),
+  submitQuizAnswerMock: vi.fn(),
 }));
 
 vi.mock("@/integrations/convex/join", async (importOriginal) => {
@@ -22,8 +30,11 @@ vi.mock("@/integrations/convex/join", async (importOriginal) => {
       message: "duplicate",
     }),
     logJoinSubmissionFailure: vi.fn(),
+    logQuizAnswerFailure: vi.fn(),
+    usePlayerQuizState: () => playerQuizStateMock(),
     useJoinSessionMutation: () => joinSessionMock,
     useJoinableSession: () => joinableSessionMock(),
+    useSubmitQuizAnswerMutation: () => submitQuizAnswerMock,
   };
 });
 
@@ -31,16 +42,25 @@ describe("JoinByCodePage", () => {
   beforeEach(() => {
     joinSessionMock.mockReset();
     joinableSessionMock.mockReset();
+    playerQuizStateMock.mockReset();
+    submitQuizAnswerMock.mockReset();
     joinableSessionMock.mockReturnValue({
       available: true,
       ...activeSessionFixture,
+    });
+    playerQuizStateMock.mockReturnValue({
+      session: activeSessionFixture,
+      player: null,
+      activeRound: null,
+      assignment: null,
+      latestResult: null,
     });
   });
 
   it("renders the player join form for active sessions", () => {
     renderApp(<JoinByCodePage joinCode="BATTLE" />);
 
-    expect(screen.getByText("Mobile Join")).toBeInTheDocument();
+    expect(screen.getByText("Round Start")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Join Battle" }),
     ).toBeInTheDocument();
@@ -64,10 +84,18 @@ describe("JoinByCodePage", () => {
       available: true,
       ...inProgressSessionFixture,
     });
+    playerQuizStateMock.mockReturnValue({
+      session: inProgressSessionFixture,
+      player: null,
+      activeRound: null,
+      assignment: null,
+      latestResult: null,
+    });
     joinSessionMock.mockResolvedValue({
       currentRoundNumber: 3,
       displayName: "Nova",
       eligibleFromRoundNumber: 4,
+      tokenBalance: 0,
     });
 
     const { user } = renderApp(<JoinByCodePage joinCode="LATE99" />);
@@ -78,5 +106,43 @@ describe("JoinByCodePage", () => {
       await screen.findByText("You are in the party."),
     ).toBeInTheDocument();
     expect(screen.getByText(/round 4/i)).toBeInTheDocument();
+  });
+
+  it("renders a multiple-choice question when a live assignment exists", async () => {
+    playerQuizStateMock.mockReturnValue({
+      session: inProgressSessionFixture,
+      player: {
+        displayName: "Ari",
+        eligibleFromRoundNumber: 1,
+        tokenBalance: 3,
+      },
+      activeRound: {
+        roundNumber: 3,
+        status: "active",
+        questionTarget: 3,
+        questionsCompleted: 1,
+        remainingQuestions: 2,
+        allowedCategories: ["history"],
+        allowedComplexities: ["easy"],
+      },
+      assignment: {
+        assignmentId: "assignment_1",
+        prompt: quizQuestionSeeds[0]?.prompt,
+        choices: quizQuestionSeeds[0]?.choices,
+        roundNumber: 3,
+        questionNumber: 2,
+      },
+      latestResult: null,
+    });
+
+    const { user } = renderApp(<JoinByCodePage joinCode="BATTLE" />);
+    await user.click(screen.getByRole("button", { name: "Enter Quiz" }));
+
+    expect(
+      await screen.findByText(quizQuestionSeeds[0]?.prompt),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Lock Answer" }),
+    ).toBeInTheDocument();
   });
 });

@@ -6,9 +6,16 @@ import {
 } from "@/test/session-fixtures";
 import { HostSessionPage } from "./$joinCode";
 
-const { hostOverviewMock, setJoinStatusMock } = vi.hoisted(() => ({
+const {
+  hostOverviewMock,
+  questionBankSummaryMock,
+  setJoinStatusMock,
+  startRoundMock,
+} = vi.hoisted(() => ({
   hostOverviewMock: vi.fn(),
+  questionBankSummaryMock: vi.fn(),
   setJoinStatusMock: vi.fn(),
+  startRoundMock: vi.fn(),
 }));
 
 vi.mock("@/integrations/convex/join", () => ({
@@ -18,15 +25,25 @@ vi.mock("@/integrations/convex/join", () => ({
   }),
   logHostSessionLoadIssue: vi.fn(),
   logJoinStatusFailure: vi.fn(),
+  logStartRoundFailure: vi.fn(),
   useHostOverview: () => hostOverviewMock(),
+  useQuestionBankSummary: () => questionBankSummaryMock(),
   useSetJoinStatusMutation: () => setJoinStatusMock,
+  useStartRoundMutation: () => startRoundMock,
 }));
 
 describe("HostSessionPage", () => {
   beforeEach(() => {
     hostOverviewMock.mockReset();
+    questionBankSummaryMock.mockReset();
     setJoinStatusMock.mockReset();
+    startRoundMock.mockReset();
     hostOverviewMock.mockReturnValue(hostOverviewFixture);
+    questionBankSummaryMock.mockReturnValue({
+      availableCategories: ["history", "science"],
+      availableComplexities: ["easy", "medium"],
+      readyQuestionCount: 12,
+    });
   });
 
   it("renders the join code and roster", () => {
@@ -62,6 +79,8 @@ describe("HostSessionPage", () => {
           displayName: "Nova",
           eligibleFromRoundNumber: 4,
           joinStatus: "joined",
+          tokenBalance: 0,
+          earnedPoints: 0,
         },
       ],
     });
@@ -70,5 +89,14 @@ describe("HostSessionPage", () => {
 
     expect(screen.getByText(/will activate next round/i)).toBeInTheDocument();
     expect(screen.getByText("Round 4")).toBeInTheDocument();
+  });
+
+  it("renders round controls when no round is active", () => {
+    renderApp(<HostSessionPage joinCode="BATTLE" />);
+
+    expect(screen.getByText("Quiz Round Controls")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start Quiz Round" }),
+    ).toBeInTheDocument();
   });
 });

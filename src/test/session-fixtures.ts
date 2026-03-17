@@ -24,6 +24,7 @@ export const hostOverviewFixture = {
     joinStatus: "open",
     currentRoundNumber: 0,
     participationWindowStatus: "idle",
+    activeRoundId: null,
     createdAt: 1,
     updatedAt: 1,
     closedAt: null,
@@ -37,18 +38,24 @@ export const hostOverviewFixture = {
   },
   joinedPlayerCount: 2,
   lateJoinerCount: 0,
+  activeRound: null,
+  leaderboard: [],
   roster: [
     {
       _id: "player_1",
       displayName: "Ari",
       eligibleFromRoundNumber: 0,
       joinStatus: "joined",
+      tokenBalance: 0,
+      earnedPoints: 0,
     },
     {
       _id: "player_2",
       displayName: "Jules",
       eligibleFromRoundNumber: 0,
       joinStatus: "joined",
+      tokenBalance: 0,
+      earnedPoints: 0,
     },
   ],
 } as const;

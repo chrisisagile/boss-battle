@@ -44,6 +44,7 @@ Define how this repo should model data and use Convex across schema, generated c
 - Prefer query shapes that match the UI need instead of returning oversized documents and trimming them in React.
 - Prefer adding schema and indexes in the same change as the first real query or mutation that depends on them.
 - Prefer keeping self-hosted operational wiring in `devops/convex/` and `devops/scripts/`, not inside application components.
+- Prefer explicit quiz question authoring through dedicated skill-facing mutations in `convex/quizQuestionAuthoring.ts` for ongoing editing and corrections. Keep `src/data/quiz-questions.ts` plus `convex/quizQuestionLoader.ts` as the repo-managed bulk load path.
 
 ## Avoid
 

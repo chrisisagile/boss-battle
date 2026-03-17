@@ -16,6 +16,7 @@ export default defineSchema({
       v.literal("open"),
       v.literal("locked"),
     ),
+    activeRoundId: v.union(v.id("gameRounds"), v.null()),
     createdAt: v.number(),
     updatedAt: v.number(),
     closedAt: v.union(v.number(), v.null()),
@@ -30,6 +31,7 @@ export default defineSchema({
     normalizedDisplayName: v.string(),
     joinStatus: v.union(v.literal("joined"), v.literal("removed")),
     eligibleFromRoundNumber: v.number(),
+    tokenBalance: v.number(),
     joinedAt: v.number(),
     lastSeenAt: v.union(v.number(), v.null()),
   })
@@ -39,4 +41,89 @@ export default defineSchema({
       "normalizedDisplayName",
     ])
     .index("by_session_and_device", ["sessionId", "deviceId"]),
+  quizQuestions: defineTable({
+    sourceKey: v.string(),
+    prompt: v.string(),
+    choices: v.array(
+      v.object({
+        id: v.string(),
+        text: v.string(),
+      }),
+    ),
+    correctChoiceId: v.string(),
+    category: v.string(),
+    complexity: v.string(),
+    tokenReward: v.number(),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("ready"),
+      v.literal("retired"),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_source_key", ["sourceKey"])
+    .index("by_status", ["status"]),
+  gameRounds: defineTable({
+    sessionId: v.id("gameSessions"),
+    roundNumber: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("active"),
+      v.literal("completed"),
+    ),
+    questionTarget: v.number(),
+    questionsCompleted: v.number(),
+    allowedCategories: v.array(v.string()),
+    allowedComplexities: v.array(v.string()),
+    createdByHostAt: v.number(),
+    startedAt: v.union(v.number(), v.null()),
+    completedAt: v.union(v.number(), v.null()),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_session_and_round_number", ["sessionId", "roundNumber"]),
+  quizAssignments: defineTable({
+    sessionId: v.id("gameSessions"),
+    roundId: v.id("gameRounds"),
+    playerEntryId: v.id("playerEntries"),
+    quizQuestionId: v.id("quizQuestions"),
+    batchNumber: v.number(),
+    status: v.union(
+      v.literal("presented"),
+      v.literal("answered"),
+      v.literal("expired"),
+      v.literal("scored"),
+    ),
+    assignedAt: v.number(),
+    expiresAt: v.number(),
+    scoredAt: v.union(v.number(), v.null()),
+    awardedTokens: v.number(),
+  })
+    .index("by_round", ["roundId"])
+    .index("by_round_and_batch", ["roundId", "batchNumber"])
+    .index("by_player", ["playerEntryId"])
+    .index("by_session_player_question", [
+      "sessionId",
+      "playerEntryId",
+      "quizQuestionId",
+    ]),
+  quizAnswers: defineTable({
+    assignmentId: v.id("quizAssignments"),
+    sessionId: v.id("gameSessions"),
+    roundId: v.id("gameRounds"),
+    playerEntryId: v.id("playerEntries"),
+    submittedChoiceId: v.string(),
+    submittedAt: v.number(),
+    evaluationResult: v.union(
+      v.literal("correct"),
+      v.literal("incorrect"),
+      v.literal("expired"),
+      v.literal("invalid"),
+    ),
+    awardedTokens: v.number(),
+    evaluatedAt: v.number(),
+  })
+    .index("by_assignment", ["assignmentId"])
+    .index("by_round", ["roundId"])
+    .index("by_player", ["playerEntryId"]),
 });

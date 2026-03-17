@@ -119,6 +119,7 @@ export const join = mutation({
       normalizedDisplayName,
       joinStatus: "joined",
       eligibleFromRoundNumber,
+      tokenBalance: 0,
       joinedAt: now,
       lastSeenAt: null,
     });
@@ -130,6 +131,7 @@ export const join = mutation({
       displayName,
       eligibleFromRoundNumber,
       currentRoundNumber: session.currentRoundNumber,
+      tokenBalance: 0,
       alreadyJoined: false,
     };
   },

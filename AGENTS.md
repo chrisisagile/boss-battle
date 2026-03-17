@@ -39,14 +39,18 @@ Current standards set:
 ## Validation
 
 - Keep Biome passing for JS, TS, JSON, and CSS changes.
+- Run `pnpm exec tsc --noEmit` for TypeScript, TSX, Convex, and generated client contract changes before considering the work complete.
 - Add or update fast tests for changed behavior, and keep `pnpm test` deterministic and Docker-free.
 - Keep browser E2E in the Aspire-backed test project under `devops/tests/`.
+- Run `pnpm test:e2e` before considering work complete when changes affect user-facing flows, route rendering, AppHost wiring, Convex runtime behavior, or browser-visible web-to-backend integration.
 - Keep commit messages conventional and sentence-case so commitlint and Husky pass.
 - Prefer focused validation for the area you changed, but call out clearly when the repo has no meaningful automated coverage for that path yet.
 
 ## Active Technologies
 - TypeScript 5.7, React 19, TSX + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, shadcn/8bitcn registry, `qrcode.react` (001-qr-game-join)
 - Convex tables for `gameSessions` and `playerEntries`, plus browser `localStorage` for a per-device join identity (001-qr-game-join)
+- TypeScript 5.7, React 19, Convex functions in JavaScript + TanStack Start, TanStack Router, TanStack Query, Tailwind CSS v4, Convex, `@convex-dev/react-query`, Cloudflare/Wrangler (002-quiz-token-awards)
+- Convex tables for sessions, rounds, question bank, assignments, answers, and player token balances; browser local storage for player device identity (002-quiz-token-awards)
 
 ## Recent Changes
 - 001-qr-game-join: Added TypeScript 5.7, React 19, TSX + TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, shadcn/8bitcn registry, `qrcode.react`

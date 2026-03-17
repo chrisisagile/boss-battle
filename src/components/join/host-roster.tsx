@@ -4,6 +4,8 @@ interface HostRosterPlayer {
   _id: string;
   displayName: string;
   eligibleFromRoundNumber: number;
+  earnedPoints?: number;
+  tokenBalance?: number;
 }
 
 interface HostRosterProps {
@@ -22,7 +24,7 @@ export function HostRoster({ currentRoundNumber, players }: HostRosterProps) {
         detail:
           player.eligibleFromRoundNumber > currentRoundNumber
             ? `Round ${player.eligibleFromRoundNumber}`
-            : "Ready now",
+            : `${player.tokenBalance ?? 0} tokens${player.earnedPoints ? ` • ${player.earnedPoints} quiz pts` : ""}`,
       }))}
     />
   );

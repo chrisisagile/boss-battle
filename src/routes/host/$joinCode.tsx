@@ -1,15 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { HostJoinStatusToggle } from "@/components/join/host-join-status-toggle";
+import { HostQuizRoundControls } from "@/components/join/host-quiz-round-controls";
+import { HostQuizRoundStatus } from "@/components/join/host-quiz-round-status";
 import { HostRoster } from "@/components/join/host-roster";
 import { HostSessionHero } from "@/components/join/host-session-hero";
 import { getJoinErrorMessage } from "@/components/join/join-error-messages";
+import { QuizPointsLeaderboard } from "@/components/join/quiz-points-leaderboard";
+import { getQuizErrorMessage } from "@/components/join/quiz-status-messages";
+import { RoundChapterIntro } from "@/components/join/round-chapter-intro";
 import {
   getJoinErrorDetails,
   logHostSessionLoadIssue,
   logJoinStatusFailure,
+  logStartRoundFailure,
   useHostOverview,
+  useQuestionBankSummary,
   useSetJoinStatusMutation,
+  useStartRoundMutation,
 } from "@/integrations/convex/join";
 
 export const Route = createFileRoute("/host/$joinCode")({
@@ -18,8 +26,14 @@ export const Route = createFileRoute("/host/$joinCode")({
 
 export function HostSessionPage({ joinCode }: { joinCode: string }) {
   const overview = useHostOverview(joinCode);
+  const questionBankSummary = useQuestionBankSummary();
   const setJoinStatus = useSetJoinStatusMutation();
+  const startRound = useStartRoundMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [roundError, setRoundError] = useState<string | null>(null);
+  const [startingRound, setStartingRound] = useState(false);
+  const [introRoundNumber, setIntroRoundNumber] = useState<number | null>(null);
+  const activeRound = overview?.activeRound ?? null;
 
   const joinUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -37,6 +51,14 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
       });
     }
   }, [joinCode, overview]);
+
+  useEffect(() => {
+    if (activeRound?.status === "active") {
+      setIntroRoundNumber((current) =>
+        current === null ? activeRound.roundNumber : current,
+      );
+    }
+  }, [activeRound]);
 
   if (overview === undefined) {
     return (
@@ -59,12 +81,22 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl flex-col gap-6 px-6 py-10">
       <HostSessionHero
+        activeRound={activeRound}
         joinCode={overview.session.joinCode}
         joinStatus={overview.session.joinStatus}
         joinUrl={joinUrl}
         joinedPlayerCount={overview.joinedPlayerCount}
         lateJoinerCount={overview.lateJoinerCount}
       />
+
+      {activeRound && introRoundNumber === activeRound.roundNumber ? (
+        <RoundChapterIntro
+          description="The room can see the round start on the shared projector before the next question batch appears."
+          questionTarget={activeRound.questionTarget}
+          roundNumber={activeRound.roundNumber}
+          onContinue={() => setIntroRoundNumber(null)}
+        />
+      ) : null}
 
       <HostJoinStatusToggle
         joinStatus={overview.session.joinStatus}
@@ -93,10 +125,47 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
         </p>
       ) : null}
 
+      <HostQuizRoundControls
+        availableCategories={
+          questionBankSummary?.availableCategories ?? ["history", "science"]
+        }
+        availableComplexities={
+          questionBankSummary?.availableComplexities ?? ["easy", "medium"]
+        }
+        busy={startingRound}
+        disabled={Boolean(activeRound)}
+        errorMessage={roundError}
+        onStartRound={(config) => {
+          setStartingRound(true);
+          setRoundError(null);
+          void startRound({
+            sessionId: overview.session._id,
+            ...config,
+          })
+            .catch((error: unknown) => {
+              const details = getJoinErrorDetails(error);
+              setRoundError(getQuizErrorMessage(details.code, details.message));
+              logStartRoundFailure({
+                joinCode,
+                message: details.message,
+              });
+            })
+            .finally(() => {
+              setStartingRound(false);
+            });
+        }}
+      />
+
+      <HostQuizRoundStatus activeRound={activeRound} />
+
       <HostRoster
         currentRoundNumber={overview.session.currentRoundNumber}
         players={overview.roster}
       />
+
+      {overview.leaderboard.some((entry) => entry.score > 0) ? (
+        <QuizPointsLeaderboard players={overview.leaderboard} />
+      ) : null}
     </main>
   );
 }
