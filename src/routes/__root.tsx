@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ActiveThemeProvider } from "@/components/ui/8bit/active-theme";
-import { ThemeSwitcher } from "@/components/ui/8bit/theme-switcher";
+import { ThemeSelector } from "@/components/ui/8bit/theme-selector";
 import { AppConvexProvider } from "../integrations/convex/provider";
 import { tanStackQueryDevtools } from "../integrations/tanstack-query/devtools";
 import * as TanstackQuery from "../integrations/tanstack-query/root-provider";
@@ -74,13 +74,13 @@ export function AppShellLayout({ children }: { children: React.ReactNode }) {
   return (
     <ActiveThemeProvider>
       <div className="border-primary/30 border-b bg-black/20 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-5">
           <div>
             <span className="retro text-[10px] text-primary uppercase tracking-[0.22em]">
               Boss Battle
             </span>
           </div>
-          <ThemeSwitcher className="lg:justify-end" />
+          <ThemeSelector className="w-full max-w-xs" />
         </div>
       </div>
       {children}

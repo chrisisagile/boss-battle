@@ -14,12 +14,17 @@ export const JOIN_ERROR_CODES = {
   duplicateDisplayName: "duplicate_display_name",
   deviceAlreadyJoined: "device_already_joined",
   invalidRoundConfig: "invalid_round_config",
+  invalidBattleConfig: "invalid_battle_config",
   insufficientQuestions: "insufficient_questions",
   noActiveRound: "no_active_round",
+  noActiveEncounter: "no_active_encounter",
   noAssignment: "no_assignment",
   assignmentExpired: "assignment_expired",
   duplicateAnswerSubmission: "duplicate_answer_submission",
   invalidAnswerChoice: "invalid_answer_choice",
+  invalidBattleAction: "invalid_battle_action",
+  insufficientActionPoints: "insufficient_action_points",
+  battleJoinBlocked: "battle_join_blocked",
 } as const;
 
 export type JoinErrorCode =
@@ -54,6 +59,24 @@ interface StartRoundFailureLogContext {
 interface QuizAnswerFailureLogContext {
   joinCode: string;
   message: string;
+}
+
+interface BattleActionFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
+interface StartEncounterFailureLogContext {
+  joinCode: string;
+  message: string;
+}
+
+interface EncounterTransitionLogContext {
+  encounterId: string | null;
+  joinCode: string;
+  nextState: string;
+  previousState: string;
+  role: "host" | "player";
 }
 
 export function getJoinErrorDetails(error: unknown) {
@@ -127,6 +150,18 @@ export function useStartRoundMutation() {
   return useMutation(api.quizRounds.startRound);
 }
 
+export function useBossCatalog() {
+  return useQuery(api.battleState.listBossCatalog, {});
+}
+
+export function useStartEncounterMutation() {
+  return useMutation(api.battleState.startEncounter);
+}
+
+export function useSubmitBattleActionMutation() {
+  return useMutation(api.battleState.submitPlayerAction);
+}
+
 export function useSubmitQuizAnswerMutation() {
   return useMutation(api.quizAssignments.submitAnswer);
 }
@@ -164,6 +199,29 @@ export function logStartRoundFailure(context: StartRoundFailureLogContext) {
 export function logQuizAnswerFailure(context: QuizAnswerFailureLogContext) {
   console.error("Failed to submit quiz answer.", {
     action: "submit_quiz_answer",
+    ...context,
+  });
+}
+
+export function logBattleActionFailure(context: BattleActionFailureLogContext) {
+  console.error("Failed to submit battle action.", {
+    action: "submit_battle_action",
+    ...context,
+  });
+}
+
+export function logStartEncounterFailure(
+  context: StartEncounterFailureLogContext,
+) {
+  console.error("Failed to start battle encounter.", {
+    action: "start_battle_encounter",
+    ...context,
+  });
+}
+
+export function logEncounterTransition(context: EncounterTransitionLogContext) {
+  console.info("Battle encounter state changed.", {
+    action: "battle_encounter_transition",
     ...context,
   });
 }

@@ -1,0 +1,304 @@
+{
+  "questions": [
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-001",
+      "prompt": "Which planet is closest to the Sun?",
+      "choices": [
+        { "id": "a", "text": "Venus" },
+        { "id": "b", "text": "Mercury" },
+        { "id": "c", "text": "Earth" },
+        { "id": "d", "text": "Mars" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-002",
+      "prompt": "Which planet is known for its prominent ring system?",
+      "choices": [
+        { "id": "a", "text": "Mars" },
+        { "id": "b", "text": "Mercury" },
+        { "id": "c", "text": "Saturn" },
+        { "id": "d", "text": "Venus" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-003",
+      "prompt": "Which planet is the largest in our solar system?",
+      "choices": [
+        { "id": "a", "text": "Jupiter" },
+        { "id": "b", "text": "Saturn" },
+        { "id": "c", "text": "Neptune" },
+        { "id": "d", "text": "Earth" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-004",
+      "prompt": "Which planet is often called the Red Planet?",
+      "choices": [
+        { "id": "a", "text": "Mars" },
+        { "id": "b", "text": "Jupiter" },
+        { "id": "c", "text": "Uranus" },
+        { "id": "d", "text": "Mercury" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-005",
+      "prompt": "Which planet has the thickest atmosphere in our solar system?",
+      "choices": [
+        { "id": "a", "text": "Earth" },
+        { "id": "b", "text": "Mars" },
+        { "id": "c", "text": "Venus" },
+        { "id": "d", "text": "Mercury" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-006",
+      "prompt": "How many planets are in our solar system?",
+      "choices": [
+        { "id": "a", "text": "7" },
+        { "id": "b", "text": "8" },
+        { "id": "c", "text": "9" },
+        { "id": "d", "text": "10" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-easy-planetary-science-007",
+      "prompt": "Which planet is tilted so far that it rotates almost on its side?",
+      "choices": [
+        { "id": "a", "text": "Neptune" },
+        { "id": "b", "text": "Jupiter" },
+        { "id": "c", "text": "Uranus" },
+        { "id": "d", "text": "Mars" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "easy",
+      "tokenReward": 2,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-001",
+      "prompt": "Which type of planet are Mercury, Venus, Earth, and Mars?",
+      "choices": [
+        { "id": "a", "text": "Gas giants" },
+        { "id": "b", "text": "Ice giants" },
+        { "id": "c", "text": "Terrestrial planets" },
+        { "id": "d", "text": "Dwarf planets" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-002",
+      "prompt": "Which planet has the hottest average surface temperature?",
+      "choices": [
+        { "id": "a", "text": "Mercury" },
+        { "id": "b", "text": "Venus" },
+        { "id": "c", "text": "Mars" },
+        { "id": "d", "text": "Jupiter" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-003",
+      "prompt": "Which planet has the shortest year because it orbits the Sun fastest?",
+      "choices": [
+        { "id": "a", "text": "Mercury" },
+        { "id": "b", "text": "Venus" },
+        { "id": "c", "text": "Earth" },
+        { "id": "d", "text": "Mars" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-004",
+      "prompt": "Which pair are the ice giants of our solar system?",
+      "choices": [
+        { "id": "a", "text": "Jupiter and Saturn" },
+        { "id": "b", "text": "Earth and Mars" },
+        { "id": "c", "text": "Mercury and Venus" },
+        { "id": "d", "text": "Uranus and Neptune" }
+      ],
+      "correctChoiceId": "d",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-005",
+      "prompt": "What is the main component of Jupiter's atmosphere?",
+      "choices": [
+        { "id": "a", "text": "Carbon dioxide" },
+        { "id": "b", "text": "Hydrogen" },
+        { "id": "c", "text": "Nitrogen" },
+        { "id": "d", "text": "Oxygen" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-006",
+      "prompt": "Which dwarf planet lies in the asteroid belt between Mars and Jupiter?",
+      "choices": [
+        { "id": "a", "text": "Pluto" },
+        { "id": "b", "text": "Eris" },
+        { "id": "c", "text": "Ceres" },
+        { "id": "d", "text": "Haumea" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-medium-planetary-science-007",
+      "prompt": "Which world is known for a giant storm called the Great Red Spot?",
+      "choices": [
+        { "id": "a", "text": "Jupiter" },
+        { "id": "b", "text": "Saturn" },
+        { "id": "c", "text": "Neptune" },
+        { "id": "d", "text": "Venus" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "medium",
+      "tokenReward": 3,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-001",
+      "prompt": "Which IAU criterion separates a dwarf planet from a full planet?",
+      "choices": [
+        { "id": "a", "text": "It must lack an atmosphere" },
+        { "id": "b", "text": "It must orbit a moon instead of the Sun" },
+        { "id": "c", "text": "It has not cleared its orbital neighborhood" },
+        { "id": "d", "text": "It must be smaller than Earth's Moon" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-002",
+      "prompt": "Which process best describes how planets formed from dust and rock in the early solar system?",
+      "choices": [
+        { "id": "a", "text": "Accretion" },
+        { "id": "b", "text": "Fusion" },
+        { "id": "c", "text": "Photosynthesis" },
+        { "id": "d", "text": "Radioactive decay" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-003",
+      "prompt": "What causes seasons on Earth and other tilted planets?",
+      "choices": [
+        { "id": "a", "text": "Changes in distance from the Sun each month" },
+        { "id": "b", "text": "Axial tilt during orbit" },
+        { "id": "c", "text": "The Moon blocking sunlight" },
+        { "id": "d", "text": "Solar flares changing yearly" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-004",
+      "prompt": "Which region beyond Neptune contains Pluto and many icy small bodies?",
+      "choices": [
+        { "id": "a", "text": "Asteroid Belt" },
+        { "id": "b", "text": "Oort Cloud" },
+        { "id": "c", "text": "Kuiper Belt" },
+        { "id": "d", "text": "Main Belt" }
+      ],
+      "correctChoiceId": "c",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-005",
+      "prompt": "What evidence shows Mars once had liquid water on its surface?",
+      "choices": [
+        { "id": "a", "text": "Only its red color" },
+        { "id": "b", "text": "Dried river channels and water-formed minerals" },
+        { "id": "c", "text": "A giant ring system" },
+        { "id": "d", "text": "A global magnetic field like Earth's" }
+      ],
+      "correctChoiceId": "b",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    },
+    {
+      "sourceKey": "planetary-science-hard-planetary-science-006",
+      "prompt": "Which exoplanet detection method looks for a star to dim when a planet passes in front of it?",
+      "choices": [
+        { "id": "a", "text": "Transit method" },
+        { "id": "b", "text": "Radar ranging" },
+        { "id": "c", "text": "Seismology" },
+        { "id": "d", "text": "Parallax imaging" }
+      ],
+      "correctChoiceId": "a",
+      "category": "planetary-science",
+      "complexity": "hard",
+      "tokenReward": 4,
+      "status": "ready"
+    }
+  ]
+}

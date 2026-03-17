@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+// biome-ignore lint/style/noDefaultExport: Convex schema entrypoints must default-export defineSchema(...)
 export default defineSchema({
   gameSessions: defineTable({
     joinCode: v.string(),
@@ -17,6 +18,14 @@ export default defineSchema({
       v.literal("locked"),
     ),
     activeRoundId: v.union(v.id("gameRounds"), v.null()),
+    activeEncounterId: v.optional(v.union(v.id("battleEncounters"), v.null())),
+    battleJoinStatus: v.optional(
+      v.union(
+        v.literal("pre_battle"),
+        v.literal("active_battle"),
+        v.literal("post_battle"),
+      ),
+    ),
     createdAt: v.number(),
     updatedAt: v.number(),
     closedAt: v.union(v.number(), v.null()),
@@ -32,6 +41,9 @@ export default defineSchema({
     joinStatus: v.union(v.literal("joined"), v.literal("removed")),
     eligibleFromRoundNumber: v.number(),
     tokenBalance: v.number(),
+    nextQuizAdvantage: v.optional(
+      v.union(v.literal("none"), v.literal("easier_question")),
+    ),
     joinedAt: v.number(),
     lastSeenAt: v.union(v.number(), v.null()),
   })
@@ -126,4 +138,93 @@ export default defineSchema({
     .index("by_assignment", ["assignmentId"])
     .index("by_round", ["roundId"])
     .index("by_player", ["playerEntryId"]),
+  skillDefinitions: defineTable({
+    name: v.string(),
+    category: v.union(
+      v.literal("attack"),
+      v.literal("heal"),
+      v.literal("defend"),
+      v.literal("study"),
+    ),
+    description: v.string(),
+    actionPointCost: v.number(),
+    targetScope: v.string(),
+    effectRule: v.string(),
+    carryForwardRule: v.union(v.string(), v.null()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("ready"),
+      v.literal("retired"),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_status", ["status"]),
+  bossDefinitions: defineTable({
+    name: v.string(),
+    description: v.string(),
+    baseHealth: v.number(),
+    baseActionPointsPerRound: v.number(),
+    scalingProfile: v.object({
+      healthPerPlayer: v.number(),
+      actionPointsPerPlayerThreshold: v.number(),
+      bonusActionPoints: v.number(),
+    }),
+    skillIds: v.array(v.id("skillDefinitions")),
+    defaultSpriteRef: v.union(v.string(), v.null()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("ready"),
+      v.literal("retired"),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_name", ["name"]),
+  battleEncounters: defineTable({
+    sessionId: v.id("gameSessions"),
+    status: v.union(
+      v.literal("setup"),
+      v.literal("active"),
+      v.literal("victory"),
+      v.literal("defeat"),
+      v.literal("completed"),
+    ),
+    encounterNumber: v.number(),
+    battleRoundNumber: v.number(),
+    partyMaxHealth: v.number(),
+    partyCurrentHealth: v.number(),
+    activeBossCount: v.number(),
+    startedAt: v.number(),
+    endedAt: v.union(v.number(), v.null()),
+    lastResolvedAt: v.number(),
+  }).index("by_session", ["sessionId"]),
+  combatantStates: defineTable({
+    sessionId: v.id("gameSessions"),
+    encounterId: v.id("battleEncounters"),
+    combatantType: v.union(v.literal("player"), v.literal("boss")),
+    playerEntryId: v.union(v.id("playerEntries"), v.null()),
+    bossDefinitionId: v.union(v.id("bossDefinitions"), v.null()),
+    displayName: v.string(),
+    lineupSlot: v.number(),
+    currentHealth: v.number(),
+    maxHealth: v.number(),
+    currentActionPoints: v.number(),
+    actionPointsPerRound: v.number(),
+    state: v.union(
+      v.literal("active"),
+      v.literal("knocked_out"),
+      v.literal("defeated"),
+    ),
+    availableSkillIds: v.array(v.id("skillDefinitions")),
+    pendingEffectIds: v.array(v.string()),
+    spriteSource: v.union(v.literal("custom"), v.literal("fallback")),
+    spriteRef: v.union(v.string(), v.null()),
+    fallbackSpriteKey: v.union(v.string(), v.null()),
+    nextQuizAdvantage: v.union(v.literal("none"), v.literal("easier_question")),
+    lastUpdatedAt: v.number(),
+  })
+    .index("by_encounter", ["encounterId"])
+    .index("by_player_entry", ["playerEntryId"])
+    .index("by_boss_definition", ["bossDefinitionId"]),
 });

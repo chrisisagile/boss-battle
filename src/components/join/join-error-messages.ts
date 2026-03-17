@@ -26,8 +26,12 @@ export function getJoinErrorMessage(
       return "This device is already attached to the session.";
     case JOIN_ERROR_CODES.invalidRoundConfig:
       return "That round configuration is not valid.";
+    case JOIN_ERROR_CODES.invalidBattleConfig:
+      return "That battle setup is not valid yet.";
     case JOIN_ERROR_CODES.insufficientQuestions:
       return "There are not enough unique quiz questions for that round setup.";
+    case JOIN_ERROR_CODES.noActiveEncounter:
+      return "There is no active battle for this player right now.";
     case JOIN_ERROR_CODES.noActiveRound:
       return "The next quiz round has not started yet.";
     case JOIN_ERROR_CODES.noAssignment:
@@ -38,6 +42,12 @@ export function getJoinErrorMessage(
       return "That answer was already submitted.";
     case JOIN_ERROR_CODES.invalidAnswerChoice:
       return "Pick one of the available answer choices.";
+    case JOIN_ERROR_CODES.invalidBattleAction:
+      return "That battle action cannot be used right now.";
+    case JOIN_ERROR_CODES.insufficientActionPoints:
+      return "There are not enough action points for that battle action.";
+    case JOIN_ERROR_CODES.battleJoinBlocked:
+      return "That battle is already underway. Join after the current battle ends.";
     default:
       return fallback;
   }

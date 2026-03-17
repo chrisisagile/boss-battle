@@ -21,8 +21,18 @@ export interface SelectablePlayerEntry<PlayerEntryId = string> {
   _id: PlayerEntryId;
 }
 
-export function filterQuestionsForRound(
-  questions: readonly SelectableQuizQuestion[],
+export function expandComplexitiesForEasierQuestion(
+  allowedComplexities: readonly string[],
+) {
+  if (allowedComplexities.includes("easy")) {
+    return [...allowedComplexities];
+  }
+
+  return [...allowedComplexities, "easy"];
+}
+
+export function filterQuestionsForRound<QuestionId>(
+  questions: readonly SelectableQuizQuestion<QuestionId>[],
   allowedCategories: readonly string[],
   allowedComplexities: readonly string[],
 ) {

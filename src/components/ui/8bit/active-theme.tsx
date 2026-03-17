@@ -9,7 +9,10 @@ interface ActiveThemeContextValue {
   setActiveTheme: (theme: RetroTheme) => void;
 }
 
-const ActiveThemeContext = createContext<ActiveThemeContextValue | null>(null);
+const ActiveThemeContext = createContext<ActiveThemeContextValue>({
+  activeTheme: DEFAULT_RETRO_THEME,
+  setActiveTheme: () => {},
+});
 
 function getStoredTheme() {
   const storedTheme = window.localStorage.getItem(STORAGE_KEY);
@@ -59,10 +62,5 @@ export function ActiveThemeProvider({
 }
 
 export function useActiveTheme() {
-  const context = useContext(ActiveThemeContext);
-  if (!context) {
-    throw new Error("useActiveTheme must be used within ActiveThemeProvider.");
-  }
-
-  return context;
+  return useContext(ActiveThemeContext);
 }

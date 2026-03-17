@@ -71,6 +71,13 @@ export const join = mutation({
       );
     }
 
+    if (session.activeEncounterId) {
+      createJoinError(
+        JOIN_ERROR_CODES.battleJoinBlocked,
+        "That battle is already underway. Join after the current battle ends.",
+      );
+    }
+
     const duplicateName = await ctx.db
       .query("playerEntries")
       .withIndex("by_session_and_display_name", (q) =>
@@ -120,6 +127,7 @@ export const join = mutation({
       joinStatus: "joined",
       eligibleFromRoundNumber,
       tokenBalance: 0,
+      nextQuizAdvantage: "none",
       joinedAt: now,
       lastSeenAt: null,
     });
@@ -132,6 +140,7 @@ export const join = mutation({
       eligibleFromRoundNumber,
       currentRoundNumber: session.currentRoundNumber,
       tokenBalance: 0,
+      nextQuizAdvantage: "none" as const,
       alreadyJoined: false,
     };
   },

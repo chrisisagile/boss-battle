@@ -11,7 +11,7 @@ Read [references/question-bank-contract.md](references/question-bank-contract.md
 
 ## Workflow
 
-1. Map the requested subject into one of the supported quiz categories: `history`, `science`, `gaming`, or `myth`.
+1. Map the requested subject into one of the supported quiz categories: `history`, `science`, `gaming`, `myth`, `planetary-science`, or `star-trek`.
 2. Decide the requested question count and complexity mix. Keep token rewards aligned to the repo convention: `easy=2`, `medium=3`, `hard=4`.
 3. Research the subject with web search before writing questions. Prefer primary or authoritative sources, cross-check facts, and avoid disputed trivia that produces ambiguous correct answers.
 4. Draft the payload as JSON using the exact `questions` array shape from the reference file. Keep each question multiple-choice with concise distractors and one unambiguous correct answer.

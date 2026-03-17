@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getBattleErrorMessage } from "@/components/join/battle-status-messages";
 import { getOrCreateDeviceId } from "@/components/join/device-id";
 import { getJoinErrorMessage } from "@/components/join/join-error-messages";
+import { PlayerBattleProfile } from "@/components/join/player-battle-profile";
 import { PlayerJoinConfirmation } from "@/components/join/player-join-confirmation";
 import { PlayerNameForm } from "@/components/join/player-name-form";
 import { PlayerQuizQuestion } from "@/components/join/player-quiz-question";
@@ -10,13 +12,17 @@ import { getQuizErrorMessage } from "@/components/join/quiz-status-messages";
 import { RoundChapterIntro } from "@/components/join/round-chapter-intro";
 import {
   getJoinErrorDetails,
+  logBattleActionFailure,
+  logEncounterTransition,
   logJoinSubmissionFailure,
   logQuizAnswerFailure,
   useJoinableSession,
   useJoinSessionMutation,
   usePlayerQuizState,
+  useSubmitBattleActionMutation,
   useSubmitQuizAnswerMutation,
 } from "@/integrations/convex/join";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 export const Route = createFileRoute("/join/$joinCode")({
   component: JoinByCodeRouteComponent,
@@ -32,15 +38,18 @@ interface JoinedState {
 export function JoinByCodePage({ joinCode }: { joinCode: string }) {
   const joinableSession = useJoinableSession(joinCode);
   const joinSession = useJoinSessionMutation();
+  const submitBattleAction = useSubmitBattleActionMutation();
   const submitQuizAnswer = useSubmitQuizAnswerMutation();
   const deviceId = getOrCreateDeviceId();
   const playerQuizState = usePlayerQuizState(joinCode, deviceId);
   const [joinedState, setJoinedState] = useState<JoinedState | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [battleError, setBattleError] = useState<string | null>(null);
   const [quizError, setQuizError] = useState<string | null>(null);
   const [answerBusy, setAnswerBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [introRoundNumber, setIntroRoundNumber] = useState<number | null>(null);
+  const previousBattleStateRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (joinableSession && !joinableSession.available) {
@@ -59,6 +68,29 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
       );
     }
   }, [playerQuizState?.activeRound]);
+
+  useEffect(() => {
+    if (!playerQuizState) {
+      return;
+    }
+
+    const nextState = playerQuizState.combatant
+      ? `${playerQuizState.combatant.encounterId}:${playerQuizState.battleStatus}`
+      : playerQuizState.battleStatus;
+    const previousState = previousBattleStateRef.current;
+
+    if (previousState && previousState !== nextState) {
+      logEncounterTransition({
+        encounterId: playerQuizState.combatant?.encounterId ?? null,
+        joinCode,
+        nextState,
+        previousState,
+        role: "player",
+      });
+    }
+
+    previousBattleStateRef.current = nextState;
+  }, [joinCode, playerQuizState]);
 
   if (joinableSession === undefined) {
     return (
@@ -100,6 +132,7 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
   const activeRound = playerQuizState.activeRound;
   const activeAssignment = playerQuizState.assignment;
   const latestResult = playerQuizState.latestResult;
+  const resolvedJoinCode = joinableSession.joinCode ?? joinCode;
   const shouldShowRoundIntro =
     activeRound &&
     introRoundNumber === activeRound.roundNumber &&
@@ -124,7 +157,7 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
             setJoinError(null);
 
             void joinSession({
-              joinCode: joinableSession.joinCode,
+              joinCode: resolvedJoinCode,
               displayName,
               deviceId,
             })
@@ -187,6 +220,45 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
                 setAnswerBusy(false);
               });
           }}
+        />
+      ) : playerQuizState.combatant && joinedPlayer ? (
+        <PlayerBattleProfile
+          availableSkills={playerQuizState.availableSkills}
+          currentActionPoints={playerQuizState.combatant.currentActionPoints}
+          currentHealth={playerQuizState.combatant.currentHealth}
+          errorMessage={battleError}
+          maxActionPoints={playerQuizState.combatant.currentActionPoints}
+          maxHealth={playerQuizState.combatant.maxHealth}
+          name={joinedPlayer.displayName}
+          nextQuizAdvantage={playerQuizState.combatant.nextQuizAdvantage}
+          onUseSkill={(skillId) => {
+            if (
+              !playerQuizState.playerEntryId ||
+              !playerQuizState.combatant?.encounterId
+            ) {
+              setBattleError(
+                "Battle state is unavailable. Refresh and try again.",
+              );
+              return;
+            }
+
+            setBattleError(null);
+            void submitBattleAction({
+              encounterId: playerQuizState.combatant.encounterId,
+              playerEntryId: playerQuizState.playerEntryId,
+              skillId: skillId as Id<"skillDefinitions">,
+            }).catch((error: unknown) => {
+              const details = getJoinErrorDetails(error);
+              setBattleError(
+                getBattleErrorMessage(details.code, details.message),
+              );
+              logBattleActionFailure({
+                joinCode,
+                message: details.message,
+              });
+            });
+          }}
+          state={playerQuizState.combatant.state}
         />
       ) : latestResult && joinedPlayer ? (
         <PlayerQuizResult

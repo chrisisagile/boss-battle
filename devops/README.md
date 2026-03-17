@@ -25,8 +25,9 @@ On first run, the AppHost will:
 3. `docker compose up`
 4. generate a self-hosted Convex admin key
 5. write `devops/convex/.env.self-hosted.local`
-6. start `pnpm exec convex dev` against the self-hosted backend
-7. start the frontend Vite watcher on an Aspire-assigned port, with `VITE_CONVEX_URL` derived from the Convex backend endpoint
+6. apply the tracked dashboard override so later AppHost starts reuse that env file for dashboard auth
+7. start `pnpm exec convex dev` against the self-hosted backend
+8. start the frontend Vite watcher on an Aspire-assigned port, with `VITE_CONVEX_URL` derived from the Convex backend endpoint
 
 ## Publish and deploy
 

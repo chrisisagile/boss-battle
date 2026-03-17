@@ -46,6 +46,7 @@ Define how `devops/` should orchestrate the local application graph without beco
 - Prefer executable resources for external tooling that already exists as scripts.
 - Prefer clear failure messages when prerequisite files such as generated Convex env state are missing.
 - Prefer keeping Convex-specific orchestration in `ConvexLayer.cs` and browser app orchestration in `WebAppLayer.cs`.
+- Prefer reusing the generated Convex env handoff for every local consumer that needs the same backend contract, including dashboard bootstrap, via tracked orchestration artifacts instead of ignored local overrides or parallel secret files.
 
 ## Avoid
 

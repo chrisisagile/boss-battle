@@ -36,7 +36,7 @@ Each question object must have:
 
 ## Allowed values
 
-- `category`: `history`, `science`, `gaming`, `myth`
+- `category`: `history`, `science`, `gaming`, `myth`, `planetary-science`, `star-trek`
 - `complexity`: `easy`, `medium`, `hard`
 - `status`: `draft`, `ready`, `retired`
 

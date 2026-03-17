@@ -1,8 +1,12 @@
+/** biome-ignore-all lint/suspicious/noDuplicateCustomProperties: Theme variants intentionally override shared tokens. */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource/dm-sans";
+@import "@fontsource/audiowide";
+@import "@fontsource/orbitron";
 @import "@fontsource/press-start-2p";
 @import "@fontsource/space-mono";
 @import "@fontsource/vt323";
@@ -15,7 +19,8 @@ html {
 
 body {
   @apply m-0 min-h-screen;
-  background:
+  background-image:
+    var(--arena-overlay-pattern),
     radial-gradient(circle at top, var(--arena-glow), transparent 26%),
     radial-gradient(circle at 20% 20%, var(--arena-glow-soft), transparent 22%),
     linear-gradient(
@@ -24,8 +29,10 @@ body {
       var(--arena-surface-mid) 48%,
       var(--arena-surface-end) 100%
     );
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--app-font-sans);
+  letter-spacing: var(--app-letter-spacing, 0.03em);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -37,23 +44,25 @@ body {
 #app {
   min-height: 100vh;
 }
-
 :root {
-  --app-font-sans: "Geist Variable", sans-serif;
-  --app-font-mono: "Space Mono", monospace;
+  --app-font-sans: "Orbitron", "Geist Variable", "DM Sans", sans-serif;
+  --app-font-mono: "Space Mono", "VT323", monospace;
   --app-font-display: "Press Start 2P", system-ui, sans-serif;
-  --arena-glow: rgba(245, 158, 11, 0.24);
-  --arena-glow-soft: rgba(251, 191, 36, 0.1);
-  --arena-grid-line: rgba(255, 255, 255, 0.05);
-  --arena-surface-start: #3f2616;
-  --arena-surface-mid: #1f140d;
-  --arena-surface-end: #0e0907;
-  --boss-panel: #1c120d;
-  --boss-panel-strong: #100905;
-  --boss-gold: #f59e0b;
-  --boss-gold-soft: #fcd34d;
-  --boss-danger: #fb7185;
-  --boss-success: #86efac;
+  --app-letter-spacing: 0.035em;
+  --arena-overlay-pattern: none;
+  --arena-glow: rgba(255, 255, 255, 0.08);
+  --arena-glow-soft: rgba(255, 255, 255, 0.04);
+  --arena-grid-line: rgba(20, 20, 20, 0.08);
+  --arena-surface-start: oklch(0.985 0 0);
+  --arena-surface-mid: oklch(0.97 0 0);
+  --arena-surface-end: oklch(0.94 0 0);
+  --boss-panel: oklch(1 0 0);
+  --boss-panel-strong: oklch(0.97 0 0);
+  --boss-gold: oklch(0.75 0.2 90);
+  --boss-gold-soft: oklch(0.9 0.08 95);
+  --boss-danger: oklch(0.577 0.245 27.325);
+  --boss-success: oklch(0.6 0.16 145);
+  --radius: 0rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -72,12 +81,11 @@ body {
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
+  --chart-1: oklch(0.2 0 0);
+  --chart-2: oklch(0.4 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.8 0 0);
+  --chart-5: oklch(0.3 0 0);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -86,6 +94,52 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --arena-glow: rgba(255, 255, 255, 0.1);
+  --arena-glow-soft: rgba(255, 255, 255, 0.05);
+  --arena-grid-line: rgba(255, 255, 255, 0.08);
+  --arena-surface-start: oklch(0.18 0 0);
+  --arena-surface-mid: oklch(0.16 0 0);
+  --arena-surface-end: oklch(0.12 0 0);
+  --boss-panel: oklch(0.205 0 0);
+  --boss-panel-strong: oklch(0.145 0 0);
+  --boss-gold: oklch(0.78 0.18 90);
+  --boss-gold-soft: oklch(0.9 0.05 95);
+  --boss-danger: oklch(0.704 0.191 22.216);
+  --boss-success: oklch(0.72 0.13 145);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.95 0 0);
+  --chart-2: oklch(0.8 0 0);
+  --chart-3: oklch(0.65 0 0);
+  --chart-4: oklch(0.5 0 0);
+  --chart-5: oklch(0.75 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @theme inline {
@@ -139,10 +193,549 @@ body {
   background-size: 24px 24px;
 }
 
+.theme-default {
+  --app-font-sans: "Orbitron", "Geist Variable", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Audiowide", "Press Start 2P", sans-serif;
+  --app-letter-spacing: 0.04em;
+  --arena-overlay-pattern:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 20px,
+      rgba(99, 102, 241, 0.06) 20px 24px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 20px,
+      rgba(148, 163, 184, 0.08) 20px 24px
+    );
+  --arena-glow: rgba(15, 23, 42, 0.08);
+  --arena-glow-soft: rgba(71, 85, 105, 0.1);
+  --arena-grid-line: rgba(15, 23, 42, 0.08);
+  --arena-surface-start: oklch(0.995 0 0);
+  --arena-surface-mid: oklch(0.975 0.002 260);
+  --arena-surface-end: oklch(0.94 0.01 260);
+  --boss-panel: oklch(1 0 0 / 92%);
+  --boss-panel-strong: oklch(0.96 0.002 260);
+  --boss-gold: oklch(0.62 0.18 245);
+  --boss-gold-soft: oklch(0.8 0.06 250);
+  --boss-danger: oklch(0.63 0.23 24);
+  --boss-success: oklch(0.67 0.15 180);
+  --radius: 0rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.9 0 0);
+  --chart-2: oklch(0.7 0 0);
+  --chart-3: oklch(0.5 0 0);
+  --chart-4: oklch(0.3 0 0);
+  --chart-5: oklch(0.8 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.theme-nintendo {
+  --app-font-sans: "Audiowide", "Orbitron", sans-serif;
+  --app-font-mono: "Press Start 2P", monospace;
+  --app-font-display: "Press Start 2P", "Audiowide", sans-serif;
+  --app-letter-spacing: 0.04em;
+  --arena-overlay-pattern: repeating-linear-gradient(
+    90deg,
+    rgba(223, 35, 57, 0.08) 0 12px,
+    rgba(16, 76, 176, 0.08) 12px 24px
+  );
+  --arena-glow: rgba(223, 35, 57, 0.22);
+  --arena-glow-soft: rgba(30, 91, 255, 0.16);
+  --arena-grid-line: rgba(16, 76, 176, 0.12);
+  --arena-surface-start: #fff9f7;
+  --arena-surface-mid: #f6f2ff;
+  --arena-surface-end: #e8ecff;
+  --boss-panel: rgba(255, 255, 255, 0.92);
+  --boss-panel-strong: #dbe5ff;
+  --boss-gold: #104cb0;
+  --boss-gold-soft: #df2339;
+  --boss-danger: #df2339;
+  --boss-success: #227c57;
+  --radius: 0rem;
+  --primary: oklch(0.5 0.2 280);
+  --primary-foreground: oklch(0 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --secondary: oklch(0.7 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.7 0 0);
+  --muted-foreground: oklch(0.4 0 0);
+  --accent: oklch(0.7 0.1 260);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.5 0.2 10);
+  --border: oklch(0.5 0.2 280);
+  --input: oklch(0.5 0.2 280);
+  --ring: oklch(0.5 0.2 280);
+  --chart-1: oklch(0.7 0 0);
+  --chart-2: oklch(0.5 0.2 280);
+  --chart-3: oklch(0.7 0 0);
+  --chart-4: oklch(0.4 0 0);
+  --chart-5: oklch(0.5 0.2 280);
+  --sidebar: oklch(0.9 0 0);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.5 0.2 280);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.7 0.1 260);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.7 0 0);
+  --sidebar-ring: oklch(0.5 0.2 280);
+}
+
+.theme-atari {
+  --app-font-sans: "Audiowide", "Orbitron", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Press Start 2P", "Audiowide", sans-serif;
+  --app-letter-spacing: 0.045em;
+  --arena-overlay-pattern:
+    linear-gradient(
+      180deg,
+      transparent 0 58%,
+      rgba(255, 204, 122, 0.22) 58% 61%,
+      transparent 61%
+    ),
+    radial-gradient(
+      circle at 50% 72%,
+      rgba(165, 79, 0, 0.14) 0 28%,
+      transparent 28%
+    );
+  --arena-glow: rgba(191, 89, 0, 0.24);
+  --arena-glow-soft: rgba(255, 203, 112, 0.18);
+  --arena-grid-line: rgba(94, 55, 20, 0.14);
+  --arena-surface-start: #f8ede0;
+  --arena-surface-mid: #e7c6a0;
+  --arena-surface-end: #b97a45;
+  --boss-panel: rgba(255, 247, 238, 0.9);
+  --boss-panel-strong: #d7ad77;
+  --boss-gold: #a54f00;
+  --boss-gold-soft: #ffcc7a;
+  --boss-danger: #c2410c;
+  --boss-success: #4d7c0f;
+  --radius: 0rem;
+  --primary: oklch(0.5 0.2 60);
+  --primary-foreground: oklch(0 0 0);
+  --background: oklch(0.7 0 0);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --secondary: oklch(0.7 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.7 0 0);
+  --muted-foreground: oklch(0 0 0);
+  --accent: oklch(0.5 0.2 60);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.5 0.3 20);
+  --border: oklch(0.5 0.2 60);
+  --input: oklch(0.7 0 0);
+  --ring: oklch(0.7 0 0);
+  --chart-1: oklch(0.7 0 0);
+  --chart-2: oklch(0.5 0.2 60);
+  --chart-3: oklch(0.9 0 0);
+  --chart-4: oklch(0.7 0 0);
+  --chart-5: oklch(0.5 0.3 280);
+  --sidebar: oklch(0.9 0 0);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.5 0.3 280);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.6 0.3 30);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.7 0 0);
+  --sidebar-ring: oklch(0.5 0.3 280);
+}
+
+.theme-neo-geo {
+  --app-font-sans: "Orbitron", "Audiowide", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Audiowide", "Press Start 2P", sans-serif;
+  --app-letter-spacing: 0.045em;
+  --arena-overlay-pattern: repeating-linear-gradient(
+    135deg,
+    rgba(212, 38, 38, 0.12) 0 16px,
+    transparent 16px 38px,
+    rgba(255, 138, 76, 0.1) 38px 46px,
+    transparent 46px 70px
+  );
+  --arena-glow: rgba(212, 38, 38, 0.2);
+  --arena-glow-soft: rgba(255, 153, 0, 0.12);
+  --arena-grid-line: rgba(89, 36, 20, 0.12);
+  --arena-surface-start: #fff0ea;
+  --arena-surface-mid: #ffd4c6;
+  --arena-surface-end: #ffb08b;
+  --boss-panel: rgba(255, 248, 245, 0.9);
+  --boss-panel-strong: #ffd4c6;
+  --boss-gold: #d42626;
+  --boss-gold-soft: #ff8a4c;
+  --boss-danger: #b91c1c;
+  --boss-success: #15803d;
+  --radius: 0rem;
+  --primary: oklch(0.65 0.25 25);
+  --primary-foreground: oklch(0.98 0.01 25);
+  --background: oklch(0.98 0.03 25);
+  --foreground: oklch(0.15 0.05 25);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.05 25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.05 25);
+  --secondary: oklch(0.9 0.02 25);
+  --secondary-foreground: oklch(0.15 0.05 25);
+  --muted: oklch(0.95 0.01 25);
+  --muted-foreground: oklch(0.45 0.1 25);
+  --accent: oklch(0.75 0.2 25);
+  --accent-foreground: oklch(0.98 0.01 25);
+  --destructive: oklch(0.7 0.3 20);
+  --border: oklch(0.8 0.1 25);
+  --input: oklch(0.95 0.01 25);
+  --ring: oklch(0.65 0.25 25);
+  --chart-1: oklch(0.65 0.25 25);
+  --chart-2: oklch(0.45 0.2 25);
+  --chart-3: oklch(0.8 0.15 25);
+  --chart-4: oklch(0.6 0.25 25);
+  --chart-5: oklch(0.7 0.2 25);
+  --sidebar: oklch(0.96 0.01 25);
+  --sidebar-foreground: oklch(0.15 0.05 25);
+  --sidebar-primary: oklch(0.65 0.25 25);
+  --sidebar-primary-foreground: oklch(0.98 0.01 25);
+  --sidebar-accent: oklch(0.9 0.02 25);
+  --sidebar-accent-foreground: oklch(0.15 0.05 25);
+  --sidebar-border: oklch(0.8 0.1 25);
+  --sidebar-ring: oklch(0.65 0.25 25);
+}
+
+.theme-soft-pop {
+  --app-font-sans: "Audiowide", "DM Sans", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Audiowide", "Press Start 2P", sans-serif;
+  --app-letter-spacing: 0.03em;
+  --arena-overlay-pattern:
+    radial-gradient(
+      circle at 20% 24%,
+      rgba(255, 216, 106, 0.22) 0 2px,
+      transparent 2px 16px
+    ),
+    radial-gradient(
+      circle at 72% 60%,
+      rgba(129, 76, 255, 0.18) 0 3px,
+      transparent 3px 22px
+    );
+  --arena-glow: rgba(129, 76, 255, 0.24);
+  --arena-glow-soft: rgba(255, 214, 102, 0.18);
+  --arena-grid-line: rgba(79, 63, 153, 0.12);
+  --arena-surface-start: #fffdf0;
+  --arena-surface-mid: #f7ebff;
+  --arena-surface-end: #e7d7ff;
+  --boss-panel: rgba(255, 255, 255, 0.92);
+  --boss-panel-strong: #efe3ff;
+  --boss-gold: #4b3f99;
+  --boss-gold-soft: #ffd86a;
+  --boss-danger: #d9485f;
+  --boss-success: #2f9b87;
+  --background: oklch(0.9789 0.0082 121.6272);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0.5106 0.2301 276.9656);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.7038 0.123 182.5025);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.9551 0 0);
+  --muted-foreground: oklch(0.3211 0 0);
+  --accent: oklch(0.7686 0.1647 70.0804);
+  --accent-foreground: oklch(0.7845 0.1325 181.912);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0 0 0);
+  --input: oklch(0.5555 0 0);
+  --ring: oklch(0.7853 0.1041 274.7134);
+  --chart-1: oklch(0.5106 0.2301 276.9656);
+  --chart-2: oklch(0.7038 0.123 182.5025);
+  --chart-3: oklch(0.7686 0.1647 70.0804);
+  --chart-4: oklch(0.6559 0.2118 354.3084);
+  --chart-5: oklch(0.7227 0.192 149.5793);
+  --sidebar: oklch(0.9789 0.0082 121.6272);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.5106 0.2301 276.9656);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.7686 0.1647 70.0804);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0 0 0);
+  --sidebar-ring: oklch(0.7853 0.1041 274.7134);
+  --font-sans: "DM Sans", sans-serif;
+  --font-serif: "DM Sans", sans-serif;
+  --font-mono: "Space Mono", monospace;
+  --radius: 0rem;
+}
+
+.theme-vhs {
+  --app-font-sans: "Audiowide", "VT323", "DM Sans", sans-serif;
+  --app-font-mono: "VT323", monospace;
+  --app-font-display: "Press Start 2P", "VT323", system-ui, sans-serif;
+  --app-letter-spacing: 0.045em;
+  --arena-overlay-pattern:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.08), rgba(255, 76, 196, 0.08));
+  --arena-glow: rgba(255, 76, 196, 0.24);
+  --arena-glow-soft: rgba(56, 189, 248, 0.18);
+  --arena-grid-line: rgba(112, 87, 255, 0.14);
+  --arena-surface-start: oklch(0.9768 0.0142 308.299);
+  --arena-surface-mid: oklch(0.9464 0.0327 307.1745);
+  --arena-surface-end: oklch(0.903 0.0732 319.6198);
+  --boss-panel: oklch(1 0 0 / 92%);
+  --boss-panel-strong: oklch(0.9464 0.0327 307.1745);
+  --boss-gold: oklch(0.5915 0.2569 322.8961);
+  --boss-gold-soft: oklch(0.903 0.0732 319.6198);
+  --boss-danger: oklch(0.5246 0.199 3.9582);
+  --boss-success: oklch(0.6002 0.1038 184.704);
+  --background: oklch(0.9768 0.0142 308.299);
+  --foreground: oklch(0.2905 0.1432 302.7167);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2905 0.1432 302.7167);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2905 0.1432 302.7167);
+  --primary: oklch(0.5915 0.2569 322.8961);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.5575 0.2525 302.3212);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.9464 0.0327 307.1745);
+  --muted-foreground: oklch(0.4383 0.1983 303.7241);
+  --accent: oklch(0.903 0.0732 319.6198);
+  --accent-foreground: oklch(0.3807 0.1661 304.9874);
+  --destructive: oklch(0.5246 0.199 3.9582);
+  --border: oklch(0.9024 0.0604 306.703);
+  --input: oklch(0.9024 0.0604 306.703);
+  --ring: oklch(0.5876 0.1389 241.9661);
+  --chart-1: oklch(0.5915 0.2569 322.8961);
+  --chart-2: oklch(0.5575 0.2525 302.3212);
+  --chart-3: oklch(0.5876 0.1389 241.9661);
+  --chart-4: oklch(0.6002 0.1038 184.704);
+  --chart-5: oklch(0.5916 0.218 0.5844);
+  --sidebar: oklch(0.9768 0.0142 308.299);
+  --sidebar-foreground: oklch(0.2905 0.1432 302.7167);
+  --sidebar-primary: oklch(0.5915 0.2569 322.8961);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.903 0.0732 319.6198);
+  --sidebar-accent-foreground: oklch(0.3807 0.1661 304.9874);
+  --sidebar-border: oklch(0.9024 0.0604 306.703);
+  --sidebar-ring: oklch(0.5876 0.1389 241.9661);
+  --radius: 0.3rem;
+}
+
+.theme-vhs.dark,
+.dark.theme-vhs {
+  --arena-glow: rgba(255, 76, 196, 0.3);
+  --arena-glow-soft: rgba(56, 189, 248, 0.2);
+  --arena-grid-line: rgba(112, 87, 255, 0.18);
+  --arena-surface-start: oklch(0.2932 0.1309 325.661);
+  --arena-surface-mid: oklch(0.1962 0.0365 301.0125);
+  --arena-surface-end: oklch(0.166 0.0254 298.9423);
+  --boss-panel: oklch(0.1962 0.0365 301.0125);
+  --boss-panel-strong: oklch(0.166 0.0254 298.9423);
+  --boss-gold: oklch(0.6668 0.2591 322.1499);
+  --boss-gold-soft: oklch(0.833 0.1322 321.4337);
+  --boss-danger: oklch(0.5246 0.199 3.9582);
+  --boss-success: oklch(0.7038 0.123 182.5025);
+  --background: oklch(0.166 0.0254 298.9423);
+  --foreground: oklch(0.9024 0.0604 306.703);
+  --card: oklch(0.1962 0.0365 301.0125);
+  --card-foreground: oklch(0.9024 0.0604 306.703);
+  --popover: oklch(0.1962 0.0365 301.0125);
+  --popover-foreground: oklch(0.9024 0.0604 306.703);
+  --primary: oklch(0.6668 0.2591 322.1499);
+  --primary-foreground: oklch(0.2795 0.0368 260.031);
+  --secondary: oklch(0.6268 0.2325 303.9004);
+  --secondary-foreground: oklch(0.9464 0.0327 307.1745);
+  --muted: oklch(0.2591 0.0611 305.6368);
+  --muted-foreground: oklch(0.7161 0.0091 56.259);
+  --accent: oklch(0.2932 0.1309 325.661);
+  --accent-foreground: oklch(0.833 0.1322 321.4337);
+  --destructive: oklch(0.5246 0.199 3.9582);
+  --border: oklch(0.2905 0.1432 302.7167);
+  --input: oklch(0.2905 0.1432 302.7167);
+  --ring: oklch(0.6847 0.1479 237.3225);
+  --chart-1: oklch(0.6668 0.2591 322.1499);
+  --chart-2: oklch(0.6268 0.2325 303.9004);
+  --chart-3: oklch(0.6847 0.1479 237.3225);
+  --chart-4: oklch(0.7038 0.123 182.5025);
+  --chart-5: oklch(0.6559 0.2118 354.3084);
+  --sidebar: oklch(0.166 0.0254 298.9423);
+  --sidebar-foreground: oklch(0.9024 0.0604 306.703);
+  --sidebar-primary: oklch(0.6668 0.2591 322.1499);
+  --sidebar-primary-foreground: oklch(0.2795 0.0368 260.031);
+  --sidebar-accent: oklch(0.2932 0.1309 325.661);
+  --sidebar-accent-foreground: oklch(0.833 0.1322 321.4337);
+  --sidebar-border: oklch(0.2905 0.1432 302.7167);
+  --sidebar-ring: oklch(0.6847 0.1479 237.3225);
+}
+
+.theme-cassette {
+  --app-font-sans: "Audiowide", "Orbitron", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "VT323", "Audiowide", sans-serif;
+  --app-letter-spacing: 0.04em;
+  --arena-overlay-pattern: repeating-linear-gradient(
+    135deg,
+    rgba(139, 90, 43, 0.12) 0 10px,
+    transparent 10px 24px
+  );
+  --arena-glow: rgba(179, 93, 38, 0.2);
+  --arena-glow-soft: rgba(255, 223, 164, 0.16);
+  --arena-grid-line: rgba(111, 78, 55, 0.12);
+  --arena-surface-start: #fff7ef;
+  --arena-surface-mid: #f0dcc8;
+  --arena-surface-end: #c89669;
+  --boss-panel: rgba(255, 250, 245, 0.9);
+  --boss-panel-strong: #d6b08c;
+  --boss-gold: #8b5a2b;
+  --boss-gold-soft: #f3c78d;
+  --boss-danger: #c75a2f;
+  --boss-success: #5b8f6a;
+  --background: oklch(0.9613 0.0245 61.6527);
+  --foreground: oklch(0.2273 0.0038 286.0916);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2273 0.0038 286.0916);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2273 0.0038 286.0916);
+  --primary: oklch(0.6831 0.1874 46.6481);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9551 0 0);
+  --secondary-foreground: oklch(0.2273 0.0038 286.0916);
+  --muted: oklch(0.9551 0 0);
+  --muted-foreground: oklch(0.5278 0 0);
+  --accent: oklch(0.9597 0.023 65.4641);
+  --accent-foreground: oklch(0.2273 0.0038 286.0916);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9219 0 0);
+  --input: oklch(0.9219 0 0);
+  --ring: oklch(0.6831 0.1874 46.6481);
+  --chart-1: oklch(0.6831 0.1874 46.6481);
+  --chart-2: oklch(0.2273 0.0038 286.0916);
+  --chart-3: oklch(0.792 0.1603 72.4384);
+  --chart-4: oklch(0.5278 0 0);
+  --chart-5: oklch(0.9597 0.023 65.4641);
+  --sidebar: oklch(0.2273 0.0038 286.0916);
+  --sidebar-foreground: oklch(0.9551 0 0);
+  --sidebar-primary: oklch(0.6831 0.1874 46.6481);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.3492 0.0034 286.2208);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3492 0.0034 286.2208);
+  --sidebar-ring: oklch(0.6831 0.1874 46.6481);
+  --font-sans: "Audiowide", "Orbitron", sans-serif;
+  --font-serif: serif;
+  --font-mono: "Space Mono", monospace;
+  --radius: 0.3rem;
+}
+
+.theme-rusty-byte {
+  --app-font-sans: "Orbitron", "Audiowide", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "VT323", "Press Start 2P", sans-serif;
+  --app-letter-spacing: 0.04em;
+  --arena-overlay-pattern: repeating-linear-gradient(
+    45deg,
+    rgba(157, 107, 63, 0.12) 0 8px,
+    transparent 8px 20px
+  );
+  --arena-glow: rgba(210, 105, 30, 0.24);
+  --arena-glow-soft: rgba(133, 77, 14, 0.18);
+  --arena-grid-line: rgba(120, 69, 24, 0.14);
+  --arena-surface-start: #f8ebdd;
+  --arena-surface-mid: #dcb793;
+  --arena-surface-end: #9d6b3f;
+  --boss-panel: rgba(253, 245, 236, 0.9);
+  --boss-panel-strong: #c59568;
+  --boss-gold: #d2691e;
+  --boss-gold-soft: #f0b26c;
+  --boss-danger: #b45309;
+  --boss-success: #557a2d;
+  --radius: 0.25rem;
+  --primary: oklch(0.65 0.18 40);
+  --primary-foreground: oklch(0.98 0.02 95);
+  --background: oklch(0.96 0.02 95);
+  --foreground: oklch(0.2 0.05 40);
+  --card: oklch(0.96 0.02 95);
+  --card-foreground: oklch(0.2 0.05 40);
+  --popover: oklch(0.96 0.02 95);
+  --popover-foreground: oklch(0.2 0.05 40);
+  --secondary: oklch(0.85 0.1 50);
+  --secondary-foreground: oklch(0.25 0.06 40);
+  --muted: oklch(0.9 0.05 80);
+  --muted-foreground: oklch(0.45 0.05 40);
+  --accent: oklch(0.7 0.15 30);
+  --accent-foreground: oklch(0.98 0.02 95);
+  --destructive: oklch(0.55 0.25 20);
+  --border: oklch(0.82 0.05 60);
+  --input: oklch(0.82 0.05 60);
+  --ring: oklch(0.65 0.18 40);
+  --chart-1: oklch(0.65 0.18 40);
+  --chart-2: oklch(0.55 0.15 20);
+  --chart-3: oklch(0.75 0.12 50);
+  --chart-4: oklch(0.5 0.1 60);
+  --chart-5: oklch(0.7 0.2 30);
+  --sidebar: oklch(0.9 0.05 80);
+  --sidebar-foreground: oklch(0.2 0.05 40);
+  --sidebar-primary: oklch(0.65 0.18 40);
+  --sidebar-primary-foreground: oklch(0.98 0.02 95);
+  --sidebar-accent: oklch(0.75 0.12 50);
+  --sidebar-accent-foreground: oklch(0.2 0.05 40);
+  --sidebar-border: oklch(0.82 0.05 60);
+  --sidebar-ring: oklch(0.65 0.18 40);
+}
+
 .theme-zelda {
-  --app-font-sans: "DM Sans", "Geist Variable", sans-serif;
+  --app-font-sans: "Orbitron", "DM Sans", "Geist Variable", sans-serif;
   --app-font-mono: "Space Mono", monospace;
   --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --app-letter-spacing: 0.04em;
+  --arena-overlay-pattern:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(234, 179, 8, 0.18) 0 18%,
+      transparent 18%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 48%,
+      rgba(132, 204, 22, 0.08) 48% 52%,
+      transparent 52%
+    );
   --arena-glow: rgba(241, 191, 36, 0.32);
   --arena-glow-soft: rgba(76, 175, 80, 0.18);
   --arena-grid-line: rgba(241, 191, 36, 0.1);
@@ -184,9 +777,13 @@ body {
 }
 
 .theme-arcade {
-  --app-font-sans: "DM Sans", "Geist Variable", sans-serif;
+  --app-font-sans: "Audiowide", "Orbitron", "DM Sans", sans-serif;
   --app-font-mono: "Space Mono", monospace;
   --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --app-letter-spacing: 0.045em;
+  --arena-overlay-pattern:
+    linear-gradient(90deg, rgba(240, 124, 212, 0.1) 0 2px, transparent 2px 28px),
+    linear-gradient(0deg, rgba(61, 220, 151, 0.08) 0 2px, transparent 2px 28px);
   --arena-glow: rgba(240, 124, 212, 0.3);
   --arena-glow-soft: rgba(255, 204, 0, 0.18);
   --arena-grid-line: rgba(240, 124, 212, 0.1);
@@ -228,9 +825,13 @@ body {
 }
 
 .theme-pacman {
-  --app-font-sans: "Press Start 2P", system-ui, sans-serif;
+  --app-font-sans: "Press Start 2P", "Audiowide", system-ui, sans-serif;
   --app-font-mono: "Press Start 2P", system-ui, sans-serif;
   --app-font-display: "Press Start 2P", system-ui, sans-serif;
+  --app-letter-spacing: 0.05em;
+  --arena-overlay-pattern:
+    radial-gradient(rgba(255, 204, 0, 0.18) 0 2px, transparent 2px 18px),
+    radial-gradient(rgba(72, 112, 255, 0.12) 0 1px, transparent 1px 12px);
   --arena-glow: rgba(255, 204, 0, 0.28);
   --arena-glow-soft: rgba(72, 112, 255, 0.16);
   --arena-grid-line: rgba(72, 112, 255, 0.12);
@@ -271,48 +872,183 @@ body {
   --sidebar-ring: oklch(0.7137 0.1434 254.624);
 }
 
-.theme-vhs {
-  --app-font-sans: "VT323", "Geist Variable", sans-serif;
+.theme-sega {
+  --app-font-sans: "Orbitron", "Audiowide", sans-serif;
+  --app-font-mono: "Space Mono", monospace;
+  --app-font-display: "Press Start 2P", "Orbitron", sans-serif;
+  --app-letter-spacing: 0.045em;
+  --arena-overlay-pattern:
+    repeating-linear-gradient(
+      120deg,
+      rgba(0, 85, 164, 0.12) 0 12px,
+      transparent 12px 28px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 60%,
+      rgba(101, 164, 255, 0.18) 60% 68%,
+      transparent 68%
+    );
+  --arena-glow: rgba(0, 85, 164, 0.24);
+  --arena-glow-soft: rgba(61, 139, 255, 0.14);
+  --arena-grid-line: rgba(35, 77, 161, 0.12);
+  --arena-surface-start: #edf5ff;
+  --arena-surface-mid: #d5e6ff;
+  --arena-surface-end: #9abfff;
+  --boss-panel: rgba(247, 251, 255, 0.9);
+  --boss-panel-strong: #c4dafd;
+  --boss-gold: #0055a4;
+  --boss-gold-soft: #65a4ff;
+  --boss-danger: #c2410c;
+  --boss-success: #0f766e;
+  --radius: 0rem;
+  --primary: oklch(0.48 0.18 252);
+  --primary-foreground: oklch(0.99 0.01 255);
+  --background: oklch(0.97 0.02 245);
+  --foreground: oklch(0.2 0.08 252);
+  --card: oklch(0.99 0.01 245);
+  --card-foreground: oklch(0.2 0.08 252);
+  --popover: oklch(0.99 0.01 245);
+  --popover-foreground: oklch(0.2 0.08 252);
+  --secondary: oklch(0.83 0.05 235);
+  --secondary-foreground: oklch(0.2 0.08 252);
+  --muted: oklch(0.9 0.03 235);
+  --muted-foreground: oklch(0.43 0.06 252);
+  --accent: oklch(0.72 0.12 240);
+  --accent-foreground: oklch(0.99 0.01 255);
+  --destructive: oklch(0.6 0.21 28);
+  --border: oklch(0.72 0.08 242);
+  --input: oklch(0.88 0.03 238);
+  --ring: oklch(0.48 0.18 252);
+  --chart-1: oklch(0.48 0.18 252);
+  --chart-2: oklch(0.63 0.14 236);
+  --chart-3: oklch(0.76 0.08 228);
+  --chart-4: oklch(0.57 0.12 215);
+  --chart-5: oklch(0.39 0.12 258);
+  --sidebar: oklch(0.95 0.02 242);
+  --sidebar-foreground: oklch(0.2 0.08 252);
+  --sidebar-primary: oklch(0.48 0.18 252);
+  --sidebar-primary-foreground: oklch(0.99 0.01 255);
+  --sidebar-accent: oklch(0.83 0.05 235);
+  --sidebar-accent-foreground: oklch(0.2 0.08 252);
+  --sidebar-border: oklch(0.72 0.08 242);
+  --sidebar-ring: oklch(0.48 0.18 252);
+}
+
+.theme-sega.dark,
+.dark.theme-sega {
+  --background: oklch(0.19 0.06 252);
+  --foreground: oklch(0.96 0.02 242);
+  --card: oklch(0.23 0.06 252);
+  --card-foreground: oklch(0.96 0.02 242);
+  --popover: oklch(0.23 0.06 252);
+  --popover-foreground: oklch(0.96 0.02 242);
+  --secondary: oklch(0.3 0.08 238);
+  --secondary-foreground: oklch(0.96 0.02 242);
+  --muted: oklch(0.26 0.04 240);
+  --muted-foreground: oklch(0.78 0.03 238);
+  --accent: oklch(0.58 0.15 238);
+  --accent-foreground: oklch(0.98 0.01 255);
+  --border: oklch(0.46 0.11 245);
+  --input: oklch(0.29 0.05 242);
+  --ring: oklch(0.6 0.16 238);
+  --sidebar: oklch(0.18 0.05 252);
+  --sidebar-foreground: oklch(0.96 0.02 242);
+  --sidebar-primary: oklch(0.6 0.16 238);
+  --sidebar-primary-foreground: oklch(0.98 0.01 255);
+  --sidebar-accent: oklch(0.28 0.06 242);
+  --sidebar-accent-foreground: oklch(0.96 0.02 242);
+  --sidebar-border: oklch(0.46 0.11 245);
+  --sidebar-ring: oklch(0.6 0.16 238);
+}
+
+.theme-gameboy {
+  --app-font-sans: "VT323", "Orbitron", sans-serif;
   --app-font-mono: "VT323", monospace;
-  --app-font-display: "VT323", monospace;
-  --arena-glow: rgba(155, 93, 229, 0.26);
-  --arena-glow-soft: rgba(59, 130, 246, 0.16);
-  --arena-grid-line: rgba(59, 130, 246, 0.08);
-  --arena-surface-start: #311942;
-  --arena-surface-mid: #1d0f28;
-  --arena-surface-end: #110815;
-  --boss-panel: #24112e;
-  --boss-panel-strong: #160a1c;
-  --boss-gold: #ff7ad9;
-  --boss-gold-soft: #7dd3fc;
-  --boss-danger: #ef4444;
-  --boss-success: #4ade80;
-  --background: oklch(0.166 0.0254 298.9423);
-  --foreground: oklch(0.9024 0.0604 306.703);
-  --card: oklch(0.1962 0.0365 301.0125);
-  --card-foreground: oklch(0.9024 0.0604 306.703);
-  --popover: oklch(0.1962 0.0365 301.0125);
-  --popover-foreground: oklch(0.9024 0.0604 306.703);
-  --primary: oklch(0.6668 0.2591 322.1499);
-  --primary-foreground: oklch(0.2795 0.0368 260.031);
-  --secondary: oklch(0.6268 0.2325 303.9004);
-  --secondary-foreground: oklch(0.9464 0.0327 307.1745);
-  --muted: oklch(0.2591 0.0611 305.6368);
-  --muted-foreground: oklch(0.7161 0.0091 56.259);
-  --accent: oklch(0.2932 0.1309 325.661);
-  --accent-foreground: oklch(0.833 0.1322 321.4337);
-  --destructive: oklch(0.5246 0.199 3.9582);
-  --border: oklch(0.2905 0.1432 302.7167);
-  --input: oklch(0.2905 0.1432 302.7167);
-  --ring: oklch(0.6847 0.1479 237.3225);
-  --sidebar: oklch(0.166 0.0254 298.9423);
-  --sidebar-foreground: oklch(0.9024 0.0604 306.703);
-  --sidebar-primary: oklch(0.6668 0.2591 322.1499);
-  --sidebar-primary-foreground: oklch(0.2795 0.0368 260.031);
-  --sidebar-accent: oklch(0.2932 0.1309 325.661);
-  --sidebar-accent-foreground: oklch(0.833 0.1322 321.4337);
-  --sidebar-border: oklch(0.2905 0.1432 302.7167);
-  --sidebar-ring: oklch(0.6847 0.1479 237.3225);
+  --app-font-display: "Press Start 2P", "VT323", sans-serif;
+  --app-letter-spacing: 0.05em;
+  --arena-overlay-pattern:
+    repeating-linear-gradient(
+      90deg,
+      rgba(74, 93, 35, 0.14) 0 2px,
+      transparent 2px 16px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(184, 207, 114, 0.08) 0 2px,
+      transparent 2px 16px
+    );
+  --arena-glow: rgba(107, 154, 22, 0.24);
+  --arena-glow-soft: rgba(162, 197, 74, 0.16);
+  --arena-grid-line: rgba(65, 90, 16, 0.14);
+  --arena-surface-start: #d7e9a9;
+  --arena-surface-mid: #afc96d;
+  --arena-surface-end: #6f8d2c;
+  --boss-panel: rgba(236, 247, 205, 0.88);
+  --boss-panel-strong: #a0b965;
+  --boss-gold: #4a5d23;
+  --boss-gold-soft: #b8cf72;
+  --boss-danger: #6b3e1c;
+  --boss-success: #40621d;
+  --radius: 0rem;
+  --primary: oklch(0.43 0.08 128);
+  --primary-foreground: oklch(0.96 0.03 110);
+  --background: oklch(0.9 0.06 110);
+  --foreground: oklch(0.32 0.05 120);
+  --card: oklch(0.94 0.04 110);
+  --card-foreground: oklch(0.32 0.05 120);
+  --popover: oklch(0.94 0.04 110);
+  --popover-foreground: oklch(0.32 0.05 120);
+  --secondary: oklch(0.77 0.08 116);
+  --secondary-foreground: oklch(0.32 0.05 120);
+  --muted: oklch(0.82 0.05 112);
+  --muted-foreground: oklch(0.46 0.04 118);
+  --accent: oklch(0.59 0.1 122);
+  --accent-foreground: oklch(0.96 0.03 110);
+  --destructive: oklch(0.44 0.09 48);
+  --border: oklch(0.58 0.07 118);
+  --input: oklch(0.86 0.05 112);
+  --ring: oklch(0.43 0.08 128);
+  --chart-1: oklch(0.43 0.08 128);
+  --chart-2: oklch(0.55 0.08 120);
+  --chart-3: oklch(0.65 0.08 112);
+  --chart-4: oklch(0.35 0.07 124);
+  --chart-5: oklch(0.72 0.07 110);
+  --sidebar: oklch(0.84 0.05 112);
+  --sidebar-foreground: oklch(0.32 0.05 120);
+  --sidebar-primary: oklch(0.43 0.08 128);
+  --sidebar-primary-foreground: oklch(0.96 0.03 110);
+  --sidebar-accent: oklch(0.77 0.08 116);
+  --sidebar-accent-foreground: oklch(0.32 0.05 120);
+  --sidebar-border: oklch(0.58 0.07 118);
+  --sidebar-ring: oklch(0.43 0.08 128);
+}
+
+.theme-gameboy.dark,
+.dark.theme-gameboy {
+  --background: oklch(0.3 0.05 120);
+  --foreground: oklch(0.89 0.05 110);
+  --card: oklch(0.35 0.05 120);
+  --card-foreground: oklch(0.89 0.05 110);
+  --popover: oklch(0.35 0.05 120);
+  --popover-foreground: oklch(0.89 0.05 110);
+  --secondary: oklch(0.46 0.06 118);
+  --secondary-foreground: oklch(0.89 0.05 110);
+  --muted: oklch(0.38 0.04 118);
+  --muted-foreground: oklch(0.74 0.04 112);
+  --accent: oklch(0.58 0.09 120);
+  --accent-foreground: oklch(0.96 0.03 110);
+  --border: oklch(0.49 0.06 118);
+  --input: oklch(0.41 0.04 118);
+  --ring: oklch(0.6 0.09 120);
+  --sidebar: oklch(0.28 0.05 120);
+  --sidebar-foreground: oklch(0.89 0.05 110);
+  --sidebar-primary: oklch(0.6 0.09 120);
+  --sidebar-primary-foreground: oklch(0.96 0.03 110);
+  --sidebar-accent: oklch(0.4 0.05 118);
+  --sidebar-accent-foreground: oklch(0.89 0.05 110);
+  --sidebar-border: oklch(0.49 0.06 118);
+  --sidebar-ring: oklch(0.6 0.09 120);
 }
 
 @layer base {

@@ -12,12 +12,17 @@ export const JOIN_ERROR_CODES = {
   duplicateDisplayName: "duplicate_display_name",
   deviceAlreadyJoined: "device_already_joined",
   invalidRoundConfig: "invalid_round_config",
+  invalidBattleConfig: "invalid_battle_config",
   insufficientQuestions: "insufficient_questions",
   noActiveRound: "no_active_round",
+  noActiveEncounter: "no_active_encounter",
   noAssignment: "no_assignment",
   assignmentExpired: "assignment_expired",
   duplicateAnswerSubmission: "duplicate_answer_submission",
   invalidAnswerChoice: "invalid_answer_choice",
+  invalidBattleAction: "invalid_battle_action",
+  insufficientActionPoints: "insufficient_action_points",
+  battleJoinBlocked: "battle_join_blocked",
 } as const;
 
 export type JoinErrorCode =

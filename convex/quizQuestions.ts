@@ -1,5 +1,5 @@
 import { quizCategories, quizComplexities } from "../src/data/quiz-questions";
-import type { QueryCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { query } from "./_generated/server";
 
 export async function getReadyQuestionsForRules(

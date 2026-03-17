@@ -3,7 +3,8 @@ internal sealed record AppHostPaths(
     string DevopsRoot,
     string ScriptsRoot,
     string ConvexRoot,
-    string ConvexEnvFile)
+    string ConvexEnvFile,
+    string ConvexComposeOverrideFile)
 {
     public static AppHostPaths FromBaseDirectory(string baseDirectory)
     {
@@ -12,12 +13,14 @@ internal sealed record AppHostPaths(
         var scriptsRoot = Path.Combine(devopsRoot, "scripts");
         var convexRoot = Path.Combine(devopsRoot, "convex");
         var convexEnvFile = Path.Combine(convexRoot, ".env.self-hosted.local");
+        var convexComposeOverrideFile = Path.Combine(devopsRoot, "convex-dashboard.compose.override.yml");
 
         return new AppHostPaths(
             repoRoot,
             devopsRoot,
             scriptsRoot,
             convexRoot,
-            convexEnvFile);
+            convexEnvFile,
+            convexComposeOverrideFile);
     }
 }

@@ -5,8 +5,8 @@ import { mutation, query } from "./_generated/server";
 import { createJoinError, JOIN_ERROR_CODES } from "./lib/joinErrors";
 import type { PriorQuizAssignment } from "./lib/quizRoundSelection";
 import {
-  buildAssignmentsForBatch,
   canSatisfyRoundForPlayers,
+  expandComplexitiesForEasierQuestion,
 } from "./lib/quizRoundSelection";
 import {
   QUIZ_ANSWER_WINDOW_MS,
@@ -18,6 +18,14 @@ import { getReadyQuestionsForRules } from "./quizQuestions";
 type QuizAccessCtx = MutationCtx | QueryCtx;
 type PlayerEntryId = Id<"playerEntries">;
 type QuizQuestionId = Id<"quizQuestions">;
+
+function getPlayerNextQuizAdvantage(player: Doc<"playerEntries">) {
+  return player.nextQuizAdvantage ?? "none";
+}
+
+function getSessionBattleJoinStatus(session: Doc<"gameSessions">) {
+  return session.battleJoinStatus ?? "pre_battle";
+}
 
 async function getJoinedPlayers(
   ctx: QuizAccessCtx,
@@ -56,6 +64,12 @@ async function getPriorAssignments(
     }));
 }
 
+function isSkillDefinition(
+  skill: Doc<"skillDefinitions"> | null,
+): skill is Doc<"skillDefinitions"> {
+  return skill !== null;
+}
+
 async function createBatchAssignments(
   ctx: MutationCtx,
   sessionId: Id<"gameSessions">,
@@ -73,28 +87,42 @@ async function createBatchAssignments(
     round.allowedComplexities,
   );
   const priorAssignments = await getPriorAssignments(ctx, sessionId);
-  const result = buildAssignmentsForBatch<PlayerEntryId, QuizQuestionId>(
-    players,
-    questions,
-    priorAssignments,
-  );
-
-  if (result.exhaustedPlayerIds.length > 0) {
-    createJoinError(
-      JOIN_ERROR_CODES.insufficientQuestions,
-      "The selected category and complexity rules do not have enough unique questions for this round.",
-    );
-  }
-
   const now = Date.now();
   const assignmentIds = [];
-  for (const assignment of result.assignments) {
+  const reservedQuestionIds = new Set<string>();
+  for (const player of players) {
+    const allowedComplexities =
+      getPlayerNextQuizAdvantage(player) === "easier_question"
+        ? expandComplexitiesForEasierQuestion(round.allowedComplexities)
+        : round.allowedComplexities;
+    const seenQuestionIds = new Set(
+      priorAssignments
+        .filter((assignment) => assignment.playerEntryId === player._id)
+        .map((assignment) => assignment.quizQuestionId.toString()),
+    );
+    const question = questions.find(
+      (currentQuestion) =>
+        currentQuestion.status === "ready" &&
+        round.allowedCategories.includes(currentQuestion.category) &&
+        allowedComplexities.includes(currentQuestion.complexity) &&
+        !seenQuestionIds.has(currentQuestion._id.toString()) &&
+        !reservedQuestionIds.has(currentQuestion._id.toString()),
+    );
+
+    if (!question) {
+      createJoinError(
+        JOIN_ERROR_CODES.insufficientQuestions,
+        "The selected category and complexity rules do not have enough unique questions for this round.",
+      );
+    }
+
+    reservedQuestionIds.add(question._id.toString());
     assignmentIds.push(
       await ctx.db.insert("quizAssignments", {
         sessionId,
         roundId: round._id,
-        playerEntryId: assignment.playerEntryId,
-        quizQuestionId: assignment.quizQuestionId,
+        playerEntryId: player._id,
+        quizQuestionId: question._id,
         batchNumber,
         status: "presented",
         assignedAt: now,
@@ -103,6 +131,12 @@ async function createBatchAssignments(
         awardedTokens: 0,
       }),
     );
+
+    if (getPlayerNextQuizAdvantage(player) === "easier_question") {
+      await ctx.db.patch(player._id, {
+        nextQuizAdvantage: "none",
+      });
+    }
   }
 
   return assignmentIds;
@@ -299,17 +333,48 @@ export const getPlayerQuizState = query({
           currentRoundNumber: session.currentRoundNumber,
           participationWindowStatus: session.participationWindowStatus,
           status: session.status,
+          battleJoinStatus: getSessionBattleJoinStatus(session),
+          activeEncounterId: session.activeEncounterId ?? null,
         },
         player: null,
+        playerEntryId: null,
         activeRound: null,
         assignment: null,
         latestResult: null,
+        combatant: null,
+        partySummary: null,
+        availableSkills: [],
+        battleStatus: session.activeEncounterId
+          ? "active_battle"
+          : "pre_battle",
+        joinBlockReason: session.activeEncounterId
+          ? "battle_join_blocked"
+          : null,
       };
     }
 
     const activeRound = session.activeRoundId
       ? await ctx.db.get(session.activeRoundId)
       : null;
+    const activeEncounter = session.activeEncounterId
+      ? await ctx.db.get(session.activeEncounterId)
+      : null;
+    const combatant = activeEncounter
+      ? await ctx.db
+          .query("combatantStates")
+          .withIndex("by_player_entry", (q) =>
+            q.eq("playerEntryId", player._id),
+          )
+          .unique()
+      : null;
+    const encounterCombatants = activeEncounter
+      ? await ctx.db
+          .query("combatantStates")
+          .withIndex("by_encounter", (q) =>
+            q.eq("encounterId", activeEncounter._id),
+          )
+          .collect()
+      : [];
 
     const playerAssignments = (
       await ctx.db
@@ -347,12 +412,16 @@ export const getPlayerQuizState = query({
         currentRoundNumber: session.currentRoundNumber,
         participationWindowStatus: session.participationWindowStatus,
         status: session.status,
+        battleJoinStatus: getSessionBattleJoinStatus(session),
+        activeEncounterId: session.activeEncounterId ?? null,
       },
       player: {
         displayName: player.displayName,
         eligibleFromRoundNumber: player.eligibleFromRoundNumber,
+        nextQuizAdvantage: getPlayerNextQuizAdvantage(player),
         tokenBalance: player.tokenBalance,
       },
+      playerEntryId: player._id,
       activeRound: activeRound
         ? {
             roundNumber: activeRound.roundNumber,
@@ -385,6 +454,61 @@ export const getPlayerQuizState = query({
               submittedChoiceId: latestAnswer.submittedChoiceId,
             }
           : null,
+      combatant: combatant
+        ? {
+            encounterId: combatant.encounterId,
+            currentActionPoints: combatant.currentActionPoints,
+            currentHealth: combatant.currentHealth,
+            displayName: combatant.displayName,
+            fallbackSpriteKey: combatant.fallbackSpriteKey,
+            id: combatant._id,
+            maxHealth: combatant.maxHealth,
+            nextQuizAdvantage: combatant.nextQuizAdvantage,
+            spriteRef: combatant.spriteRef,
+            state: combatant.state,
+          }
+        : null,
+      partySummary: activeEncounter
+        ? {
+            activePlayers: encounterCombatants.filter(
+              (currentCombatant) =>
+                currentCombatant.combatantType === "player" &&
+                currentCombatant.state === "active",
+            ).length,
+            currentHealth: activeEncounter.partyCurrentHealth,
+            knockedOutPlayers: encounterCombatants.filter(
+              (currentCombatant) =>
+                currentCombatant.combatantType === "player" &&
+                currentCombatant.state === "knocked_out",
+            ).length,
+            maxHealth: activeEncounter.partyMaxHealth,
+          }
+        : null,
+      availableSkills: combatant
+        ? (
+            await Promise.all(
+              combatant.availableSkillIds.map(
+                (skillId: Id<"skillDefinitions">) => ctx.db.get(skillId),
+              ),
+            )
+          )
+            .filter(isSkillDefinition)
+            .map((skill: Doc<"skillDefinitions">) => ({
+              actionPointCost: skill.actionPointCost,
+              available: combatant.currentActionPoints >= skill.actionPointCost,
+              category: skill.category,
+              id: skill._id,
+              name: skill.name,
+            }))
+        : [],
+      battleStatus: activeEncounter
+        ? activeEncounter.status === "active"
+          ? activeAssignment
+            ? "active_quiz"
+            : "active_battle"
+          : activeEncounter.status
+        : "pre_battle",
+      joinBlockReason: null,
     };
   },
 });

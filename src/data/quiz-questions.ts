@@ -3,6 +3,7 @@ export const quizCategories = [
   "science",
   "gaming",
   "myth",
+  "planetary-science",
   "star-trek",
 ] as const;
 

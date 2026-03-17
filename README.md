@@ -27,6 +27,16 @@ pnpm test:e2e
 pnpm test:all
 ```
 
+`pnpm build` now validates Convex first by running a non-watch `convex dev`
+step before Vite bundles the frontend. That means build failures can come from
+either frontend bundling or backend Convex validation. For local self-hosted
+development, run `pnpm dev` once first so `devops/convex/.env.self-hosted.local`
+exists. In other environments, provide a standard Convex deployment context.
+
+`pnpm typecheck` runs both the repo TypeScript program and the Convex-local
+TypeScript program so `convex/schema.ts` and the rest of the Convex tree are
+checked explicitly.
+
 `pnpm test` runs the fast Vitest and Testing Library suite only. It should stay
 Docker-free and deterministic. `pnpm test:e2e` runs the Aspire-backed browser
 smoke suite from `devops/tests/` against the full AppHost graph, including the
@@ -43,7 +53,7 @@ Before running `pnpm test:e2e`, make sure:
 
 - `src/routes/__root.tsx` defines the app shell and wraps the app with TanStack Query and Convex providers.
 - `src/routes/index.tsx` is the only route and the current starting page.
-- `convex/schema.js` is intentionally empty so you can add real tables and functions from scratch.
+- `convex/schema.ts` is the typed Convex schema entrypoint for runtime data contracts.
 - `devops/` still contains the AppHost and Convex orchestration for local development and deploys.
 
 ## Next step

@@ -46,6 +46,8 @@ internal static class ConvexLayer
                 paths.ScriptsRoot,
                 "convex-stack.sh",
                 paths.ConvexRoot,
+                paths.ConvexEnvFile,
+                paths.ConvexComposeOverrideFile,
                 "up")
             .WithWorkingDirectory(paths.ScriptsRoot)
             .WithHttpEndpoint(name: "backend-api", env: "PORT")

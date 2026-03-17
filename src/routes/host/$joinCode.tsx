@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getBattleErrorMessage } from "@/components/join/battle-status-messages";
+import { HostBattleArena } from "@/components/join/host-battle-arena";
+import { HostBattleSetup } from "@/components/join/host-battle-setup";
 import { HostJoinStatusToggle } from "@/components/join/host-join-status-toggle";
 import { HostQuizRoundControls } from "@/components/join/host-quiz-round-controls";
 import { HostQuizRoundStatus } from "@/components/join/host-quiz-round-status";
@@ -11,14 +14,19 @@ import { getQuizErrorMessage } from "@/components/join/quiz-status-messages";
 import { RoundChapterIntro } from "@/components/join/round-chapter-intro";
 import {
   getJoinErrorDetails,
+  logEncounterTransition,
   logHostSessionLoadIssue,
   logJoinStatusFailure,
+  logStartEncounterFailure,
   logStartRoundFailure,
+  useBossCatalog,
   useHostOverview,
   useQuestionBankSummary,
   useSetJoinStatusMutation,
+  useStartEncounterMutation,
   useStartRoundMutation,
 } from "@/integrations/convex/join";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 export const Route = createFileRoute("/host/$joinCode")({
   component: HostRouteComponent,
@@ -26,13 +34,18 @@ export const Route = createFileRoute("/host/$joinCode")({
 
 export function HostSessionPage({ joinCode }: { joinCode: string }) {
   const overview = useHostOverview(joinCode);
+  const bossCatalog = useBossCatalog();
   const questionBankSummary = useQuestionBankSummary();
   const setJoinStatus = useSetJoinStatusMutation();
+  const startEncounter = useStartEncounterMutation();
   const startRound = useStartRoundMutation();
+  const [battleError, setBattleError] = useState<string | null>(null);
+  const [startingBattle, setStartingBattle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [roundError, setRoundError] = useState<string | null>(null);
   const [startingRound, setStartingRound] = useState(false);
   const [introRoundNumber, setIntroRoundNumber] = useState<number | null>(null);
+  const previousEncounterStateRef = useRef<string | null>(null);
   const activeRound = overview?.activeRound ?? null;
 
   const joinUrl = useMemo(() => {
@@ -59,6 +72,31 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
       );
     }
   }, [activeRound]);
+
+  useEffect(() => {
+    if (!overview) {
+      return;
+    }
+
+    const nextState = overview.encounter
+      ? `${overview.encounter.encounterNumber}:${overview.encounter.status}`
+      : (overview.session.battleJoinStatus ?? "pre_battle");
+    const previousState = previousEncounterStateRef.current;
+
+    if (previousState && previousState !== nextState) {
+      logEncounterTransition({
+        encounterId: overview.encounter
+          ? `encounter-${overview.encounter.encounterNumber}`
+          : null,
+        joinCode,
+        nextState,
+        previousState,
+        role: "host",
+      });
+    }
+
+    previousEncounterStateRef.current = nextState;
+  }, [joinCode, overview]);
 
   if (overview === undefined) {
     return (
@@ -88,6 +126,35 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
         joinedPlayerCount={overview.joinedPlayerCount}
         lateJoinerCount={overview.lateJoinerCount}
       />
+
+      {!overview.encounter && bossCatalog ? (
+        <HostBattleSetup
+          bossCatalog={bossCatalog}
+          busy={startingBattle}
+          errorMessage={battleError}
+          onStartEncounter={(bossDefinitionIds) => {
+            setStartingBattle(true);
+            setBattleError(null);
+            void startEncounter({
+              bossDefinitionIds: bossDefinitionIds as Id<"bossDefinitions">[],
+              sessionId: overview.session._id,
+            })
+              .catch((error: unknown) => {
+                const details = getJoinErrorDetails(error);
+                setBattleError(
+                  getBattleErrorMessage(details.code, details.message),
+                );
+                logStartEncounterFailure({
+                  joinCode,
+                  message: details.message,
+                });
+              })
+              .finally(() => {
+                setStartingBattle(false);
+              });
+          }}
+        />
+      ) : null}
 
       {activeRound && introRoundNumber === activeRound.roundNumber ? (
         <RoundChapterIntro
@@ -162,6 +229,14 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
         currentRoundNumber={overview.session.currentRoundNumber}
         players={overview.roster}
       />
+
+      {overview.encounter && overview.partySummary ? (
+        <HostBattleArena
+          battleRoundNumber={overview.encounter.battleRoundNumber}
+          bossLineup={overview.bossLineup}
+          partySummary={overview.partySummary}
+        />
+      ) : null}
 
       {overview.leaderboard.some((entry) => entry.score > 0) ? (
         <QuizPointsLeaderboard players={overview.leaderboard} />
