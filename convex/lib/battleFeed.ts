@@ -28,11 +28,13 @@ export function buildBattleActivityFeed(
   exchange: Doc<"battleExchanges"> | null | undefined,
   recentHistoryLimit = 3,
 ) {
-  if (!exchange || exchange.activityEvents.length === 0) {
+  const activityEvents = exchange?.activityEvents ?? [];
+
+  if (!exchange || activityEvents.length === 0) {
     return null;
   }
 
-  const orderedEvents = [...exchange.activityEvents].sort(
+  const orderedEvents = [...activityEvents].sort(
     (left, right) => left.eventNumber - right.eventNumber,
   );
   const currentEvent = orderedEvents.at(-1) ?? null;

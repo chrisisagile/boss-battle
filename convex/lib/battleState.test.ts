@@ -17,6 +17,23 @@ function asId<
 }
 
 describe("battleFeed helpers", () => {
+  it("returns null when a legacy exchange does not have activity events", () => {
+    const feed = buildBattleActivityFeed({
+      _creationTime: 0,
+      _id: asId<"battleExchanges">("exchange_legacy"),
+      bossActionSummary: [],
+      encounterId: asId<"battleEncounters">("encounter_1"),
+      exchangeNumber: 1,
+      playerActions: [],
+      playerTurnOrder: [],
+      resolvedAt: 1,
+      roundId: asId<"gameRounds">("round_1"),
+      status: "resolved",
+    });
+
+    expect(feed).toBeNull();
+  });
+
   it("returns the current event plus recent history for one exchange", () => {
     const feed = buildBattleActivityFeed({
       _creationTime: 0,
