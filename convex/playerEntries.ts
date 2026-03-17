@@ -64,17 +64,33 @@ export const join = mutation({
       );
     }
 
+    const existingDeviceEntry = await ctx.db
+      .query("playerEntries")
+      .withIndex("by_session_and_device", (q) =>
+        q.eq("sessionId", session._id).eq("deviceId", deviceId),
+      )
+      .unique();
+
+    if (existingDeviceEntry && existingDeviceEntry.joinStatus === "joined") {
+      await ctx.db.patch(existingDeviceEntry._id, {
+        lastSeenAt: Date.now(),
+      });
+
+      return {
+        playerEntryId: existingDeviceEntry._id,
+        sessionId: session._id,
+        joinCode: session.joinCode,
+        displayName: existingDeviceEntry.displayName,
+        eligibleFromRoundNumber: existingDeviceEntry.eligibleFromRoundNumber,
+        currentRoundNumber: session.currentRoundNumber,
+        alreadyJoined: true,
+      };
+    }
+
     if (session.joinStatus === "closed") {
       createJoinError(
         JOIN_ERROR_CODES.sessionClosed,
         "That session is no longer accepting new players.",
-      );
-    }
-
-    if (session.activeEncounterId) {
-      createJoinError(
-        JOIN_ERROR_CODES.battleJoinBlocked,
-        "That battle is already underway. Join after the current battle ends.",
       );
     }
 
@@ -92,25 +108,6 @@ export const join = mutation({
         JOIN_ERROR_CODES.duplicateDisplayName,
         "That display name is already taken in this session.",
       );
-    }
-
-    const existingDeviceEntry = await ctx.db
-      .query("playerEntries")
-      .withIndex("by_session_and_device", (q) =>
-        q.eq("sessionId", session._id).eq("deviceId", deviceId),
-      )
-      .unique();
-
-    if (existingDeviceEntry && existingDeviceEntry.joinStatus === "joined") {
-      return {
-        playerEntryId: existingDeviceEntry._id,
-        sessionId: session._id,
-        joinCode: session.joinCode,
-        displayName: existingDeviceEntry.displayName,
-        eligibleFromRoundNumber: existingDeviceEntry.eligibleFromRoundNumber,
-        currentRoundNumber: session.currentRoundNumber,
-        alreadyJoined: true,
-      };
     }
 
     const now = Date.now();

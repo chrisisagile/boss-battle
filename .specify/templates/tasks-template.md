@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. For this repo, behavior-changing work should assume focused integration coverage is required, and browser-visible flow changes should include incremental `pnpm test:e2e` tasks plus issue-response tasks.
+**Tests**: The examples below include test tasks. For this repo, behavior-changing work should assume focused integration coverage is required. Browser-visible flow changes should keep E2E implementation in the task list, but the default execution gate for `pnpm test:e2e` is when implementation is believed complete, followed by fix-and-rerun if it fails.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -88,7 +88,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
-- [ ] T011a [US1] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
+- [ ] T011a [US1] Keep Aspire/browser test coverage updated in the relevant E2E files so the final `pnpm test:e2e` gate can validate this story
 
 ### Implementation for User Story 1
 
@@ -99,7 +99,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T016 [US1] Add validation and error handling
 - [ ] T017 [US1] Add logging for user story 1 operations
 - [ ] T017a [US1] If delegated subagents are available and allowed, run a standards-review subagent against changed files and address findings before marking the story complete
-- [ ] T017b [US1] Record and respond to any focused integration or E2E failures before starting the next story
+- [ ] T017b [US1] Record and respond to any focused integration failures before starting the next story
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -115,7 +115,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
-- [ ] T019a [US2] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
+- [ ] T019a [US2] Keep Aspire/browser test coverage updated in the relevant E2E files so the final `pnpm test:e2e` gate can validate this story
 
 ### Implementation for User Story 2
 
@@ -124,7 +124,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T023 [US2] Integrate with User Story 1 components (if needed)
 - [ ] T023a [US2] If delegated subagents are available and allowed, run a standards-review subagent against changed files and address findings before marking the story complete
-- [ ] T023b [US2] Record and respond to any focused integration or E2E failures before starting the next story
+- [ ] T023b [US2] Record and respond to any focused integration failures before starting the next story
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -140,7 +140,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
-- [ ] T025a [US3] Run `pnpm test:e2e` after browser-visible slice completion and investigate any failures before continuing
+- [ ] T025a [US3] Keep Aspire/browser test coverage updated in the relevant E2E files so the final `pnpm test:e2e` gate can validate this story
 
 ### Implementation for User Story 3
 
@@ -169,6 +169,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 - [ ] TXXX Run final repo-wide verification including `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, and `pnpm test:e2e`
+- [ ] TXXX If `pnpm test:e2e` fails at the final gate, fix the relevant issue, rerun `pnpm test:e2e`, and only defer failures that are proven unrelated and explicitly documented
 - [ ] TXXX If delegated subagents are available and allowed, run a final standards-review subagent pass against changed code and address relevant findings
 
 ---
@@ -194,7 +195,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - Tests (if included) MUST be written and FAIL before implementation
 - Focused integration coverage MUST be added or updated for behavior-changing work
-- Browser-visible slices MUST run `pnpm test:e2e` before the slice is considered done
+- Browser-visible slices MUST keep E2E coverage current, but the default `pnpm test:e2e` execution gate is when implementation is believed complete
 - Models before services
 - Services before endpoints
 - Core implementation before integration
@@ -233,7 +234,7 @@ Task: "Create [Entity2] model in src/models/[entity2].py"
 2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
 3. Complete Phase 3: User Story 1
 4. **STOP and VALIDATE**: Test User Story 1 independently
-   Run focused integration coverage and `pnpm test:e2e` if the story changes browser-visible flows
+   Run focused integration coverage; update E2E coverage if the story changes browser-visible flows
 5. Deploy/demo if ready
 
 ### Incremental Delivery
@@ -265,6 +266,7 @@ With multiple developers:
 - Verify tests fail before implementing
 - If delegated subagents are available and allowed, run a standards-review subagent before marking each story complete
 - If coding standards edits appear necessary, stop and ask the user before changing `docs/codingstandards/`
+- Run `pnpm test:e2e` when implementation is believed complete for browser-visible work, then fix and rerun if it fails
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

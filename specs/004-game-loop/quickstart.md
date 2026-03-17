@@ -76,33 +76,37 @@ browser behavior, the final validation gate also includes:
 pnpm test:e2e
 ```
 
-Run focused integration and E2E checks incrementally after each major slice:
+Run focused integration checks incrementally after each major slice:
 
 - After room creation and host lobby changes:
 
 ```bash
 pnpm test -- --run src/routes/-index.test.tsx src/routes/host/-\$joinCode.test.tsx src/components/join/host-battle-setup.test.tsx
-pnpm test:e2e
 ```
 
 - After quiz progression or waiting-state changes:
 
 ```bash
 pnpm test -- --run src/routes/join/-\$joinCode.test.tsx convex/quizRounds.test.ts convex/lib/quizRoundSelection.test.ts
-pnpm test:e2e
 ```
 
 - After battle resolution, disconnect, rejoin, or results-state changes:
 
 ```bash
 pnpm test -- --run convex/battleState.test.ts src/routes/host/-\$joinCode.test.tsx src/routes/join/-\$joinCode.test.tsx src/components/join/host-battle-arena.test.tsx src/components/join/player-battle-profile.test.tsx
+```
+
+When implementation appears complete, run:
+
+```bash
 pnpm test:e2e
 ```
 
-If a focused integration test or `pnpm test:e2e` fails:
+If a focused integration test or the final `pnpm test:e2e` gate fails:
 
 - investigate the failure in the same slice first
 - fix the issue before continuing when it is related to the active game-loop work
+- rerun the failing command after the fix
 - if the failure is proven unrelated, record the exact command and the blocking reason before moving on
 
 If the standards-review subagent finds a mismatch:

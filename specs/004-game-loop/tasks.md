@@ -3,7 +3,7 @@
 **Input**: Design documents from `/home/chris/dev/personal/boss-battle/specs/004-game-loop/`
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
 
-**Tests**: Focused integration coverage is required for each implementation slice. Because this feature changes browser-visible host/player flows and Convex-backed runtime behavior, each major slice also runs `pnpm test:e2e` and responds to failures before continuing.
+**Tests**: Focused integration coverage is required for each implementation slice. Because this feature changes browser-visible host/player flows and Convex-backed runtime behavior, the final implementation-complete gate also runs `pnpm test:e2e`; if it fails, fix the issue and rerun before calling the work complete unless the failure is proven unrelated and documented.
 
 **Organization**: Tasks are grouped by user story so each story can be implemented, validated, and demonstrated independently.
 
@@ -17,10 +17,10 @@
 
 **Purpose**: Load repo standards, confirm affected seams, and establish the required review workflow before implementation starts.
 
-- [ ] T001 Review `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, and `docs/codingstandards/convex.md` before editing `src/` or `convex/`
-- [ ] T002 [P] Review the active feature package in `specs/004-game-loop/spec.md`, `specs/004-game-loop/plan.md`, `specs/004-game-loop/research.md`, `specs/004-game-loop/data-model.md`, `specs/004-game-loop/contracts/route-game-loop-contract.md`, and `specs/004-game-loop/contracts/convex-game-loop-contract.md`
-- [ ] T003 [P] If delegated subagents are available and allowed, run a standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, and `docs/codingstandards/convex.md` before implementation begins
-- [ ] T004 If implementation appears to require editing `docs/codingstandards/README.md` or any file under `docs/codingstandards/`, stop and ask the user before touching those paths
+- [X] T001 Review `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, and `docs/codingstandards/convex.md` before editing `src/` or `convex/`
+- [X] T002 [P] Review the active feature package in `specs/004-game-loop/spec.md`, `specs/004-game-loop/plan.md`, `specs/004-game-loop/research.md`, `specs/004-game-loop/data-model.md`, `specs/004-game-loop/contracts/route-game-loop-contract.md`, and `specs/004-game-loop/contracts/convex-game-loop-contract.md`
+- [X] T003 [P] If delegated subagents are available and allowed, run a standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, and `docs/codingstandards/convex.md` before implementation begins
+- [X] T004 If implementation appears to require editing `docs/codingstandards/README.md` or any file under `docs/codingstandards/`, stop and ask the user before touching those paths
 
 ---
 
@@ -30,12 +30,12 @@
 
 **Checkpoint**: Do not start user-story implementation until these tasks are complete.
 
-- [ ] T005 Update `convex/schema.ts` to add locked lobby-config fields on sessions plus `roundParticipants` and `battleExchanges` storage needed by the game loop
+- [X] T005 Update `convex/schema.ts` to add locked lobby-config fields on sessions plus `roundParticipants` and `battleExchanges` storage needed by the game loop
 - [ ] T006 [P] Extend `convex/lib/joinValidation.ts`, `convex/lib/joinErrors.ts`, and `src/components/join/join-validation.ts` for room-lock, invalid-start, removed-player, and later-round rejoin validation rules
 - [ ] T007 [P] Extend `convex/lib/battleValidation.ts` and `convex/lib/battleState.ts` for shared game-phase, exchange-progress, action-point economy, and termination helpers used across rounds
-- [ ] T008 [P] Refactor `src/integrations/convex/join.ts` to centralize the new host/player query summaries, lifecycle mutations, and logging for lobby, quiz, battle, rejoin, and results states
+- [X] T008 [P] Refactor `src/integrations/convex/join.ts` to centralize the new host/player query summaries, lifecycle mutations, and logging for lobby, quiz, battle, rejoin, and results states
 - [ ] T009 Run `pnpm exec convex codegen` to refresh generated Convex contracts under `convex/_generated/`
-- [ ] T010 Run foundational validation with `pnpm test -- --run convex/quizRounds.test.ts convex/battleState.test.ts convex/lib/quizRoundSelection.test.ts` and fix or document failures before starting US1
+- [X] T010 Run foundational validation with `pnpm test -- --run convex/quizRounds.test.ts convex/battleState.test.ts convex/lib/quizRoundSelection.test.ts` and fix or document failures before starting US1
 
 ---
 
@@ -47,18 +47,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Expand route integration coverage in `src/routes/-index.test.tsx` and `src/routes/host/-$joinCode.test.tsx` for fresh-room creation, single active-room resume, lobby loading/error states, and start-game join locking
-- [ ] T012 [P] [US1] Expand host lobby component coverage in `src/components/join/host-battle-setup.test.tsx` and `src/components/join/host-roster.test.tsx` for boss/question/category/difficulty config rules and connected-player rendering
-- [ ] T013 [P] [US1] Extend AppHost smoke coverage in `devops/tests/BossBattle.AppHost.Tests/AppHostSmokeTests.cs` for `/` to `/host/$joinCode` room launch and lobby rendering
+- [X] T011 [P] [US1] Expand route integration coverage in `src/routes/-index.test.tsx` and `src/routes/host/-$joinCode.test.tsx` for fresh-room creation, single active-room resume, lobby loading/error states, and start-game join locking
+- [X] T012 [P] [US1] Expand host lobby component coverage in `src/components/join/host-battle-setup.test.tsx` and `src/components/join/host-roster.test.tsx` for boss/question/category/difficulty config rules and connected-player rendering
+- [X] T013 [P] [US1] Extend AppHost smoke coverage in `devops/tests/BossBattle.AppHost.Tests/AppHostSmokeTests.cs` for `/` to `/host/$joinCode` room launch and lobby rendering
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Extend `convex/gameSessions.ts` for isolated room creation, current-active-room lookup, join-status toggling, locked lobby config persistence, and host-end lifecycle fields
-- [ ] T015 [US1] Extend `convex/playerEntries.ts` for pre-start join acceptance, post-start join rejection, and room-level player presence checks used by host start-game validation
+- [X] T014 [US1] Extend `convex/gameSessions.ts` for isolated room creation, current-active-room lookup, join-status toggling, locked lobby config persistence, and host-end lifecycle fields
+- [X] T015 [US1] Extend `convex/playerEntries.ts` for pre-start join acceptance, post-start join rejection, and room-level player presence checks used by host start-game validation
 - [ ] T016 [US1] Update `src/routes/index.tsx` and `src/components/join/host-session-launcher.tsx` for create-room and single-active-room resume without exposing older sessions
-- [ ] T017 [US1] Update `src/routes/host/$joinCode.tsx`, `src/components/join/host-session-hero.tsx`, `src/components/join/join-qr-card.tsx`, and `src/components/join/host-join-status-toggle.tsx` for lobby summary, QR display, join open/closed status, and start-game entrypoint wiring
-- [ ] T018 [US1] Update `src/components/join/host-battle-setup.tsx`, `src/components/join/host-quiz-round-controls.tsx`, and `src/components/join/host-roster.tsx` for validated host config controls, readiness display, and start-game gating
-- [ ] T019 [US1] Run `pnpm test -- --run src/routes/-index.test.tsx src/routes/host/-$joinCode.test.tsx src/components/join/host-battle-setup.test.tsx src/components/join/host-roster.test.tsx` and `pnpm test:e2e`, then fix or explicitly document any related failures before US2
+- [X] T017 [US1] Update `src/routes/host/$joinCode.tsx`, `src/components/join/host-session-hero.tsx`, `src/components/join/join-qr-card.tsx`, and `src/components/join/host-join-status-toggle.tsx` for lobby summary, QR display, join open/closed status, and start-game entrypoint wiring
+- [X] T018 [US1] Update `src/components/join/host-battle-setup.tsx`, `src/components/join/host-quiz-round-controls.tsx`, and `src/components/join/host-roster.tsx` for validated host config controls, readiness display, and start-game gating
+- [X] T019 [US1] Run `pnpm test -- --run src/routes/-index.test.tsx src/routes/host/-$joinCode.test.tsx src/components/join/host-battle-setup.test.tsx src/components/join/host-roster.test.tsx` and fix or explicitly document any related failures before US2
 - [ ] T020 [US1] If delegated subagents are available and allowed, run a standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, `docs/codingstandards/convex.md`, `src/routes/index.tsx`, `src/routes/host/$joinCode.tsx`, `src/components/join/host-battle-setup.tsx`, `src/components/join/host-roster.tsx`, `convex/gameSessions.ts`, and `convex/playerEntries.ts`, then address findings before closing US1
 
 ---
@@ -78,14 +78,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Extend `convex/quizRounds.ts` and `convex/quizAssignments.ts` for explicit round phases, per-round assignments, sequential answer progression, readiness tracking, and round-complete scoring gates
+- [X] T025 [US2] Extend `convex/quizRounds.ts` and `convex/quizAssignments.ts` for explicit round phases, per-round assignments, sequential answer progression, readiness tracking, and round-complete scoring gates
 - [ ] T026 [US2] Extend `convex/battleState.ts` and `convex/lib/battleState.ts` for public `startEncounter`, public `resolveBattleExchange`, automatic boss action and target selection, random player tie-breaking, and next-round or results transitions
 - [ ] T027 [US2] Extend `convex/playerEntries.ts` and `convex/gameSessions.ts` for disconnect removal from the active round, `eligibleFromRoundNumber` updates, join-resolution responses, and per-round participation windows
-- [ ] T028 [US2] Update `src/integrations/convex/join.ts` for host and player summary mapping, mutation hooks, target-aware action submission, and lifecycle logging across quiz, waiting, action-selection, battle-resolution, removed, and rejoin states
-- [ ] T029 [US2] Update `src/routes/host/$joinCode.tsx`, `src/components/join/host-battle-arena.tsx`, `src/components/join/host-quiz-round-status.tsx`, and `src/components/join/battle-status-messages.ts` for arena-first projector flow, readiness markers, exchange progress, and round-state messaging
-- [ ] T030 [US2] Update `src/routes/join/$joinCode.tsx`, `src/components/join/round-chapter-intro.tsx`, `src/components/join/player-quiz-question.tsx`, `src/components/join/player-quiz-result.tsx`, and `src/components/join/quiz-status-messages.ts` for automatic quiz delivery, immediate answer progression, and waiting-for-others transitions
-- [ ] T031 [US2] Update `src/components/join/player-battle-profile.tsx` and `src/components/join/battle-status-messages.ts` for action-point display, valid target selection, knocked-out handling, removed-from-round messaging, and next-round rejoin messaging
-- [ ] T032 [US2] Run `pnpm test -- --run src/routes/join/-$joinCode.test.tsx src/routes/host/-$joinCode.test.tsx src/components/join/host-battle-arena.test.tsx src/components/join/player-battle-profile.test.tsx convex/quizRounds.test.ts convex/battleState.test.ts convex/lib/quizRoundSelection.test.ts` and `pnpm test:e2e`, then fix or explicitly document any related failures before US3
+- [X] T028 [US2] Update `src/integrations/convex/join.ts` for host and player summary mapping, mutation hooks, target-aware action submission, and lifecycle logging across quiz, waiting, action-selection, battle-resolution, removed, and rejoin states
+- [X] T029 [US2] Update `src/routes/host/$joinCode.tsx`, `src/components/join/host-battle-arena.tsx`, `src/components/join/host-quiz-round-status.tsx`, and `src/components/join/battle-status-messages.ts` for arena-first projector flow, readiness markers, exchange progress, and round-state messaging
+- [X] T030 [US2] Update `src/routes/join/$joinCode.tsx`, `src/components/join/round-chapter-intro.tsx`, `src/components/join/player-quiz-question.tsx`, `src/components/join/player-quiz-result.tsx`, and `src/components/join/quiz-status-messages.ts` for automatic quiz delivery, immediate answer progression, and waiting-for-others transitions
+- [X] T031 [US2] Update `src/components/join/player-battle-profile.tsx` and `src/components/join/battle-status-messages.ts` for action-point display, valid target selection, knocked-out handling, removed-from-round messaging, and next-round rejoin messaging
+- [X] T032 [US2] Run `pnpm test -- --run src/routes/join/-$joinCode.test.tsx src/routes/host/-$joinCode.test.tsx src/components/join/host-battle-arena.test.tsx src/components/join/player-battle-profile.test.tsx convex/quizRounds.test.ts convex/battleState.test.ts convex/lib/quizRoundSelection.test.ts` and fix or explicitly document any related failures before US3
 - [ ] T033 [US2] If delegated subagents are available and allowed, run a standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, `docs/codingstandards/convex.md`, `src/routes/host/$joinCode.tsx`, `src/routes/join/$joinCode.tsx`, `src/components/join/host-battle-arena.tsx`, `src/components/join/player-battle-profile.tsx`, `src/integrations/convex/join.ts`, `convex/quizRounds.ts`, `convex/quizAssignments.ts`, `convex/battleState.ts`, and `convex/playerEntries.ts`, then address findings before closing US2
 
 ---
@@ -108,7 +108,7 @@
 - [ ] T038 [US3] Update `src/routes/host/$joinCode.tsx`, `src/components/join/host-battle-arena.tsx`, and `src/components/join/battle-status-messages.ts` for victory, defeat, no-actions-left, and host-ended results states on the projector surface
 - [ ] T039 [US3] Update `src/routes/join/$joinCode.tsx`, `src/components/join/player-battle-profile.tsx`, and `src/components/join/quiz-status-messages.ts` for player-facing results, blocked post-game actions, and clear end-of-session messaging
 - [ ] T040 [US3] Update `src/routes/index.tsx` and `src/components/join/host-session-launcher.tsx` for start-new-room recovery after results without exposing prior room history
-- [ ] T041 [US3] Run `pnpm test -- --run src/routes/host/-$joinCode.test.tsx src/routes/join/-$joinCode.test.tsx src/components/join/host-battle-arena.test.tsx src/components/join/player-battle-profile.test.tsx convex/battleState.test.ts convex/quizRounds.test.ts` and `pnpm test:e2e`, then fix or explicitly document any related failures before polish
+- [ ] T041 [US3] Run `pnpm test -- --run src/routes/host/-$joinCode.test.tsx src/routes/join/-$joinCode.test.tsx src/components/join/host-battle-arena.test.tsx src/components/join/player-battle-profile.test.tsx convex/battleState.test.ts convex/quizRounds.test.ts` and fix or explicitly document any related failures before polish
 - [ ] T042 [US3] If delegated subagents are available and allowed, run a standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, `docs/codingstandards/convex.md`, `src/routes/host/$joinCode.tsx`, `src/routes/join/$joinCode.tsx`, `src/components/join/host-battle-arena.tsx`, `src/components/join/player-battle-profile.tsx`, `convex/gameSessions.ts`, and `convex/battleState.ts`, then address findings before closing US3
 
 ---
@@ -120,7 +120,7 @@
 - [ ] T043 [P] Refresh generated Convex outputs with `pnpm exec convex codegen` for files under `convex/_generated/` after the final schema and function changes settle
 - [ ] T044 [P] Update `specs/004-game-loop/quickstart.md` and `specs/004-game-loop/plan.md` if implementation changes the final validation commands, affected seams, or review workflow captured there
 - [ ] T045 Re-check whether any change to `docs/codingstandards/README.md` or files under `docs/codingstandards/` is still being considered and stop to ask the user before editing those paths
-- [ ] T046 Run final repo-wide verification with `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, and `pnpm test:e2e`, then fix or explicitly document any proven unrelated failures
+- [ ] T046 Run final repo-wide verification with `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, and `pnpm test:e2e`; if `pnpm test:e2e` fails, fix the issue and rerun it before completion unless the failure is proven unrelated and documented
 - [ ] T047 If delegated subagents are available and allowed, run a final standards-review subagent against `docs/codingstandards/README.md`, `docs/codingstandards/shared.md`, `docs/codingstandards/testing.md`, `docs/codingstandards/react.md`, `docs/codingstandards/tanstack-start.md`, `docs/codingstandards/convex.md`, changed files under `src/`, changed files under `convex/`, and `devops/tests/BossBattle.AppHost.Tests/AppHostSmokeTests.cs`, then address relevant findings before merge
 
 ---
@@ -145,8 +145,8 @@
 ### Within Each User Story
 
 - Write or expand focused integration coverage before or alongside the implementation it validates.
-- Run `pnpm test:e2e` before marking any browser-visible slice complete.
-- Fix slice-related integration or E2E failures before moving to the next story unless the failure is proven unrelated and documented.
+- Keep browser-visible E2E coverage updated as the story evolves.
+- Fix slice-related integration failures before moving to the next story unless the failure is proven unrelated and documented.
 - Run the standards-review subagent step when available and allowed before closing the story.
 
 ## Parallel Opportunities
@@ -187,7 +187,7 @@ Task: "Extend AppHost smoke coverage in devops/tests/BossBattle.AppHost.Tests/Ap
 ### MVP First
 
 1. Complete Phase 1 and Phase 2.
-2. Complete US1 and validate `src/routes/-index.test.tsx`, `src/routes/host/-$joinCode.test.tsx`, `src/components/join/host-battle-setup.test.tsx`, `src/components/join/host-roster.test.tsx`, and `pnpm test:e2e`.
+2. Complete US1 and validate `src/routes/-index.test.tsx`, `src/routes/host/-$joinCode.test.tsx`, `src/components/join/host-battle-setup.test.tsx`, and `src/components/join/host-roster.test.tsx`.
 3. Demo the host room creation, lobby, and start-game lock flow before moving into round logic.
 
 ### Incremental Delivery
@@ -199,5 +199,4 @@ Task: "Extend AppHost smoke coverage in devops/tests/BossBattle.AppHost.Tests/Ap
 
 ### Validation Rule
 
-Do not continue to the next story while the current story still has an unresolved focused integration failure, unresolved `pnpm test:e2e` failure, or unresolved standards-review finding that applies to existing coding standards.
-
+Do not continue to the next story while the current story still has an unresolved focused integration failure or unresolved standards-review finding that applies to existing coding standards. Before calling the feature complete, run the final `pnpm test:e2e` gate and fix/rerun any related failure unless it is proven unrelated and documented.

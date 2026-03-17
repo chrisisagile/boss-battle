@@ -37,7 +37,7 @@ describe("HostBattleSetup", () => {
     await user.click(
       screen.getByRole("checkbox", { name: "Select Ashen Oracle" }),
     );
-    await user.click(screen.getByRole("button", { name: "Start Battle" }));
+    await user.click(screen.getByRole("button", { name: "Start Game" }));
 
     expect(screen.getByText("2 bosses selected")).toBeInTheDocument();
     expect(onStartEncounter).toHaveBeenCalledWith(["boss_1", "boss_2"]);
@@ -59,7 +59,7 @@ describe("HostBattleSetup", () => {
     );
 
     expect(screen.getByText("0 bosses selected")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Battle" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
     expect(
       screen.getByText(
         "Choose at least one eligible boss before starting a battle.",

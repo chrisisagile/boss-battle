@@ -26,6 +26,7 @@ export const playerQuizStateFixture = {
     tokenBalance: 4,
   },
   activeRound: {
+    id: "round_1",
     roundNumber: 1,
     status: "active",
     questionTarget: 3,
@@ -34,6 +35,22 @@ export const playerQuizStateFixture = {
     allowedCategories: ["history"],
     allowedComplexities: ["easy"],
   },
+  assignments: [
+    {
+      assignmentId: "assignment_1",
+      prompt: quizQuestionFixture.prompt,
+      choices: quizQuestionFixture.choices,
+      roundNumber: 1,
+      questionNumber: 1,
+    },
+    {
+      assignmentId: "assignment_2",
+      prompt: quizQuestionMediumFixture.prompt,
+      choices: quizQuestionMediumFixture.choices,
+      roundNumber: 1,
+      questionNumber: 2,
+    },
+  ],
   assignment: {
     assignmentId: "assignment_1",
     prompt: quizQuestionFixture.prompt,

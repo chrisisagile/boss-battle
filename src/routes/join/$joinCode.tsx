@@ -20,7 +20,7 @@ import {
   useJoinSessionMutation,
   usePlayerQuizState,
   useSubmitBattleActionMutation,
-  useSubmitQuizAnswerMutation,
+  useSubmitQuizAnswerBatchMutation,
 } from "@/integrations/convex/join";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -39,7 +39,7 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
   const joinableSession = useJoinableSession(joinCode);
   const joinSession = useJoinSessionMutation();
   const submitBattleAction = useSubmitBattleActionMutation();
-  const submitQuizAnswer = useSubmitQuizAnswerMutation();
+  const submitQuizAnswers = useSubmitQuizAnswerBatchMutation();
   const deviceId = getOrCreateDeviceId();
   const playerQuizState = usePlayerQuizState(joinCode, deviceId);
   const [joinedState, setJoinedState] = useState<JoinedState | null>(null);
@@ -130,17 +130,19 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
 
   const joinedPlayer = playerQuizState.player ?? joinedState;
   const activeRound = playerQuizState.activeRound;
-  const activeAssignment = playerQuizState.assignment;
+  const activeAssignments = playerQuizState.assignments ?? [];
   const latestResult = playerQuizState.latestResult;
   const resolvedJoinCode = joinableSession.joinCode ?? joinCode;
   const shouldShowRoundIntro =
     activeRound &&
     introRoundNumber === activeRound.roundNumber &&
-    Boolean(activeAssignment);
+    activeAssignments.length > 0;
+  const blockedNewJoin =
+    !joinedPlayer && joinableSession.joinBlockedReason === "closed";
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-3xl flex-col gap-6 px-6 py-10">
-      {!joinedPlayer ? (
+      {!joinedPlayer && !blockedNewJoin ? (
         <RoundChapterIntro
           description="Enter a display name so the host can see you on the shared roster. You only need your phone and the room code."
           questionTarget={1}
@@ -148,7 +150,12 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
         />
       ) : null}
 
-      {!joinedPlayer ? (
+      {blockedNewJoin ? (
+        <JoinPageState
+          heading="Joining is locked."
+          body="This game has already started. New players cannot join until the host starts a fresh room."
+        />
+      ) : !joinedPlayer ? (
         <PlayerNameForm
           busy={busy}
           errorMessage={joinError}
@@ -191,20 +198,20 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
           roundNumber={activeRound.roundNumber}
           onContinue={() => setIntroRoundNumber(null)}
         />
-      ) : activeAssignment && activeRound ? (
+      ) : activeAssignments.length > 0 && activeRound ? (
         <PlayerQuizQuestion
           busy={answerBusy}
-          choices={activeAssignment.choices}
           errorMessage={quizError}
-          prompt={activeAssignment.prompt}
-          questionNumber={activeAssignment.questionNumber}
+          questions={activeAssignments}
           roundNumber={activeRound.roundNumber}
-          onSubmit={(submittedChoiceId) => {
+          onSubmit={(answers) => {
             setAnswerBusy(true);
             setQuizError(null);
-            void submitQuizAnswer({
-              assignmentId: activeAssignment.assignmentId,
-              submittedChoiceId,
+            void submitQuizAnswers({
+              answers: answers.map((answer) => ({
+                assignmentId: answer.assignmentId as Id<"quizAssignments">,
+                submittedChoiceId: answer.submittedChoiceId,
+              })),
             })
               .catch((error: unknown) => {
                 const details = getJoinErrorDetails(error);
@@ -221,9 +228,14 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
               });
           }}
         />
-      ) : playerQuizState.combatant && joinedPlayer ? (
+      ) : playerQuizState.combatant &&
+        joinedPlayer &&
+        ["action_selection", "active_battle"].includes(
+          playerQuizState.battleStatus,
+        ) ? (
         <PlayerBattleProfile
           availableSkills={playerQuizState.availableSkills}
+          availableTargets={playerQuizState.availableTargets}
           currentActionPoints={playerQuizState.combatant.currentActionPoints}
           currentHealth={playerQuizState.combatant.currentHealth}
           errorMessage={battleError}
@@ -231,10 +243,11 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
           maxHealth={playerQuizState.combatant.maxHealth}
           name={joinedPlayer.displayName}
           nextQuizAdvantage={playerQuizState.combatant.nextQuizAdvantage}
-          onUseSkill={(skillId) => {
+          onUseSkill={(skillId, targetId) => {
             if (
               !playerQuizState.playerEntryId ||
-              !playerQuizState.combatant?.encounterId
+              !playerQuizState.combatant?.encounterId ||
+              !playerQuizState.activeRound
             ) {
               setBattleError(
                 "Battle state is unavailable. Refresh and try again.",
@@ -246,7 +259,9 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
             void submitBattleAction({
               encounterId: playerQuizState.combatant.encounterId,
               playerEntryId: playerQuizState.playerEntryId,
+              roundId: playerQuizState.activeRound.id as Id<"gameRounds">,
               skillId: skillId as Id<"skillDefinitions">,
+              targetId: targetId ? (targetId as Id<"combatantStates">) : null,
             }).catch((error: unknown) => {
               const details = getJoinErrorDetails(error);
               setBattleError(
@@ -259,6 +274,26 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
             });
           }}
           state={playerQuizState.combatant.state}
+        />
+      ) : joinedPlayer &&
+        playerQuizState.battleStatus === "removed_from_round" ? (
+        <JoinPageState
+          heading="Round complete for now"
+          body="You were removed from the active round. Stay connected and you can return when the next round begins."
+        />
+      ) : joinedPlayer &&
+        activeRound &&
+        ["active_quiz", "waiting_for_players", "battle_resolution"].includes(
+          playerQuizState.battleStatus,
+        ) ? (
+        <JoinPageState
+          heading="Waiting for the room..."
+          body="Stay on this screen. Your next quiz question or battle prompt will appear automatically."
+        />
+      ) : playerQuizState.results ? (
+        <JoinPageState
+          heading="Game Over"
+          body={`Outcome: ${playerQuizState.results.completionReason}. The host must start a fresh room for another run.`}
         />
       ) : latestResult && joinedPlayer ? (
         <PlayerQuizResult

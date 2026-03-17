@@ -40,7 +40,7 @@
 - Items are numbered sequentially for easy reference
 - For implementation-readiness or delivery checklists, include explicit items for:
   - focused integration coverage
-  - incremental `pnpm test:e2e` runs for browser-visible slices
-  - issue-response steps when tests fail
+  - final `pnpm test:e2e` gating for browser-visible work
+  - fix-and-rerun steps when focused or E2E tests fail
   - delegated standards-review subagent passes when available and allowed
   - stopping for explicit user confirmation before any edits to `docs/codingstandards/`

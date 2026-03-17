@@ -8,7 +8,8 @@ Modified principles:
 - [PRINCIPLE_4_NAME] -> IV. Resilient User Experience And Observability
 - [PRINCIPLE_5_NAME] -> V. Cloudflare-Compatible Delivery
 Expanded obligations:
-- Incremental integration and AppHost E2E validation required at each major implementation slice for browser-visible flow changes
+- Incremental focused integration validation required at each major implementation slice for browser-visible flow changes
+- AppHost E2E validation required at the final implementation-complete gate, with fix-and-rerun response when it fails
 - Standards-review subagent check added when delegated subagents are available and allowed
 - Editing docs/codingstandards now requires an explicit stop and user confirmation
 Added sections:
@@ -62,10 +63,12 @@ becoming production behavior without evidence.
 
 For browser-visible host, player, projector, route, or Convex-backed flow
 changes, each major implementation slice MUST run focused integration coverage
-and `pnpm test:e2e` before the slice is considered complete. If a focused or
-E2E check fails, the default response is to investigate and fix the failure in
-that same slice; only failures proven unrelated may be deferred, and they MUST
-be recorded explicitly with the exact failing command and blocking reason.
+before the slice is considered complete. `pnpm test:e2e` is the final
+implementation-complete gate for those changes, not the default per-slice gate.
+If a focused or E2E check fails, the default response is to investigate and fix
+the failure in that same implementation effort, then rerun the failing command.
+Only failures proven unrelated may be deferred, and they MUST be recorded
+explicitly with the exact failing command and blocking reason.
 
 ### IV. Resilient User Experience And Observability
 New routes, mutations, and asynchronous flows MUST define and implement loading,
@@ -102,20 +105,23 @@ recover from failure, or report a useful defect.
    scenarios, edge cases, and measurable success criteria.
 2. Produce `plan.md` with a Constitution Check that covers typed boundaries,
    validation strategy, tests, user-facing states, observability, runtime
-   constraints, verification commands, and incremental integration/E2E gates for
-   browser-visible slices.
+   constraints, verification commands, focused per-slice integration gates, and
+   the final E2E gate for browser-visible flows.
 3. Break implementation into `tasks.md` by user story, including tasks for
    tests, validation, documentation, standards review, and operational
    follow-through when those concerns are affected.
 4. Implement the smallest useful vertical slice first and keep the diff aligned
    to the approved plan.
 5. After each major slice, run the slice's focused integration checks and
-   `pnpm test:e2e` when the slice changes browser-visible flows; respond to
-   failures before continuing.
-6. If delegated subagents are available and allowed, run a standards-review
+   respond to failures before continuing.
+6. When implementation appears complete for a browser-visible or Convex-backed
+   flow change, run `pnpm test:e2e`; if it fails, fix the relevant issue and
+   rerun `pnpm test:e2e` before calling the implementation complete unless the
+   failure is proven unrelated and explicitly documented.
+7. If delegated subagents are available and allowed, run a standards-review
    subagent against `docs/codingstandards/` and the created code before merge
    and address any relevant findings.
-7. Before merge, run the affected verification commands, update impacted docs
+8. Before merge, run the affected verification commands, update impacted docs
    other than `docs/codingstandards/`, and record any exceptions, TODOs, or
    unrelated failures explicitly.
 
@@ -133,4 +139,4 @@ verify the Constitution Check, required tests, documentation updates, and any
 declared exceptions. Temporary exceptions MUST name an owner, scope, and exit
 condition. Dates MUST use ISO `YYYY-MM-DD`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-17
+**Version**: 1.2.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-17

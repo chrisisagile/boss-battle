@@ -51,11 +51,6 @@ interface JoinSubmissionFailureLogContext {
   message: string;
 }
 
-interface StartRoundFailureLogContext {
-  joinCode: string;
-  message: string;
-}
-
 interface QuizAnswerFailureLogContext {
   joinCode: string;
   message: string;
@@ -146,10 +141,6 @@ export function usePlayerQuizState(joinCode: string, deviceId: string) {
   );
 }
 
-export function useStartRoundMutation() {
-  return useMutation(api.quizRounds.startRound);
-}
-
 export function useBossCatalog() {
   return useQuery(api.battleState.listBossCatalog, {});
 }
@@ -162,8 +153,20 @@ export function useSubmitBattleActionMutation() {
   return useMutation(api.battleState.submitPlayerAction);
 }
 
+export function useResolveBattleExchangeMutation() {
+  return useMutation(api.battleState.resolveBattleExchange);
+}
+
+export function useEndGameMutation() {
+  return useMutation(api.gameSessions.endGame);
+}
+
 export function useSubmitQuizAnswerMutation() {
   return useMutation(api.quizAssignments.submitAnswer);
+}
+
+export function useSubmitQuizAnswerBatchMutation() {
+  return useMutation(api.quizAssignments.submitAnswerBatch);
 }
 
 export function logHostSessionLoadIssue(context: HostSessionLoadLogContext) {
@@ -185,13 +188,6 @@ export function logJoinSubmissionFailure(
 ) {
   console.error("Failed to join session.", {
     action: "join_session",
-    ...context,
-  });
-}
-
-export function logStartRoundFailure(context: StartRoundFailureLogContext) {
-  console.error("Failed to start quiz round.", {
-    action: "start_quiz_round",
     ...context,
   });
 }

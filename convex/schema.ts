@@ -26,6 +26,29 @@ export default defineSchema({
         v.literal("post_battle"),
       ),
     ),
+    gamePhase: v.optional(
+      v.union(
+        v.literal("lobby"),
+        v.literal("quiz"),
+        v.literal("waiting_for_players"),
+        v.literal("action_selection"),
+        v.literal("battle_resolution"),
+        v.literal("results"),
+      ),
+    ),
+    completionReason: v.optional(
+      v.union(
+        v.literal("players_won"),
+        v.literal("bosses_won"),
+        v.literal("host_ended"),
+        v.literal("no_actions_left"),
+      ),
+    ),
+    selectedBossDefinitionIds: v.optional(v.array(v.id("bossDefinitions"))),
+    questionTargetPerRound: v.optional(v.number()),
+    allowedCategories: v.optional(v.array(v.string())),
+    allowedComplexities: v.optional(v.array(v.string())),
+    configLockedAt: v.optional(v.union(v.number(), v.null())),
     createdAt: v.number(),
     updatedAt: v.number(),
     closedAt: v.union(v.number(), v.null()),
@@ -88,12 +111,44 @@ export default defineSchema({
     questionsCompleted: v.number(),
     allowedCategories: v.array(v.string()),
     allowedComplexities: v.array(v.string()),
+    exchangeLimit: v.optional(
+      v.union(v.literal(1), v.literal(2), v.literal(3)),
+    ),
+    exchangesResolved: v.optional(v.number()),
+    phase: v.optional(
+      v.union(
+        v.literal("quiz"),
+        v.literal("waiting_for_players"),
+        v.literal("action_selection"),
+        v.literal("battle_resolution"),
+        v.literal("completed"),
+      ),
+    ),
     createdByHostAt: v.number(),
     startedAt: v.union(v.number(), v.null()),
     completedAt: v.union(v.number(), v.null()),
   })
     .index("by_session", ["sessionId"])
     .index("by_session_and_round_number", ["sessionId", "roundNumber"]),
+  roundParticipants: defineTable({
+    sessionId: v.id("gameSessions"),
+    roundId: v.id("gameRounds"),
+    playerEntryId: v.id("playerEntries"),
+    status: v.union(
+      v.literal("active"),
+      v.literal("quiz_complete"),
+      v.literal("action_ready"),
+      v.literal("removed_disconnected"),
+      v.literal("waiting_next_round"),
+      v.literal("knocked_out"),
+    ),
+    completedQuizAt: v.union(v.number(), v.null()),
+    removedAt: v.union(v.number(), v.null()),
+    canReturnNextRound: v.boolean(),
+  })
+    .index("by_round", ["roundId"])
+    .index("by_round_and_player", ["roundId", "playerEntryId"])
+    .index("by_session_and_player", ["sessionId", "playerEntryId"]),
   quizAssignments: defineTable({
     sessionId: v.id("gameSessions"),
     roundId: v.id("gameRounds"),
@@ -227,4 +282,35 @@ export default defineSchema({
     .index("by_encounter", ["encounterId"])
     .index("by_player_entry", ["playerEntryId"])
     .index("by_boss_definition", ["bossDefinitionId"]),
+  battleExchanges: defineTable({
+    roundId: v.id("gameRounds"),
+    encounterId: v.id("battleEncounters"),
+    exchangeNumber: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("resolving"),
+      v.literal("resolved"),
+    ),
+    bossActionSummary: v.array(
+      v.object({
+        actorId: v.id("combatantStates"),
+        damage: v.number(),
+        skillName: v.string(),
+        targetId: v.union(v.id("combatantStates"), v.null()),
+      }),
+    ),
+    playerTurnOrder: v.array(v.id("combatantStates")),
+    playerActions: v.array(
+      v.object({
+        playerEntryId: v.id("playerEntries"),
+        skillId: v.id("skillDefinitions"),
+        targetId: v.union(v.id("combatantStates"), v.null()),
+        submittedAt: v.number(),
+      }),
+    ),
+    resolvedAt: v.union(v.number(), v.null()),
+  })
+    .index("by_round", ["roundId"])
+    .index("by_round_and_exchange", ["roundId", "exchangeNumber"])
+    .index("by_encounter", ["encounterId"]),
 });

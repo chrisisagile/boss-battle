@@ -48,7 +48,7 @@ export function HostBattleSetup({
           type="button"
           onClick={() => onStartEncounter(selectedBossIds)}
         >
-          {busy ? "Starting..." : "Start Battle"}
+          {busy ? "Starting..." : "Start Game"}
         </Button>
       </div>
 

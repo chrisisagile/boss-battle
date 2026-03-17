@@ -19,6 +19,9 @@
     "test:e2e": "dotnet test devops/tests/BossBattle.AppHost.Tests/BossBattle.AppHost.Tests.csproj",
     "test:e2e:install": "bash ./devops/scripts/install-playwright-e2e.sh",
     "test:all": "pnpm test && pnpm test:e2e",
+    "validate:commit": "pnpm lint && pnpm test",
+    "validate:pr:fast": "pnpm exec tsc --noEmit && pnpm lint && pnpm test",
+    "validate:pr:e2e": "pnpm test:e2e",
     "commitlint": "commitlint",
     "deploy": "pnpm run build && wrangler deploy"
   },

@@ -1,6 +1,6 @@
 # Implementation Plan: Game Loop
 
-**Branch**: `[004-game-loop]` | **Date**: 2026-03-17 | **Spec**: [spec.md](/home/chris/dev/personal/boss-battle/specs/004-game-loop/spec.md)
+**Branch**: `[feat/004-game-loop]` | **Date**: 2026-03-17 | **Spec**: [spec.md](/home/chris/dev/personal/boss-battle/specs/004-game-loop/spec.md)
 **Input**: Feature specification from `/specs/004-game-loop/spec.md`
 
 ## Summary
@@ -19,7 +19,7 @@ explicit results screen.
 **Language/Version**: TypeScript 5.7, React 19, Convex functions in TypeScript  
 **Primary Dependencies**: TanStack Start 1.132, TanStack Router, TanStack Query, Convex 1.27, `@convex-dev/react-query`, Tailwind CSS v4, Cloudflare/Wrangler  
 **Storage**: Convex tables for sessions, player entries, quiz rounds, assignments, answers, battle encounters, combatant states, boss definitions, and skill definitions; browser `localStorage` for per-device join identity  
-**Testing**: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, focused route/component and Convex tests, plus `pnpm test:e2e` because user-facing host/player game-loop flows and Convex-backed browser integration change materially  
+**Testing**: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, focused route/component and Convex tests during implementation, plus a final `pnpm test:e2e` gate because user-facing host/player game-loop flows and Convex-backed browser integration change materially  
 **Target Platform**: Cloudflare-hosted web application for a shared projector host screen and modern mobile browsers  
 **Project Type**: Full-stack web app  
 **Performance Goals**: Hosts can create a room and reach the lobby in under 5 seconds; players see the next quiz question immediately after answering; host/player battle-phase updates propagate within 5 seconds of quiz completion or battle resolution; the host can identify ready-vs-waiting players within 5 seconds from the projector view  
@@ -124,8 +124,9 @@ composition and keep retro presentation wrappers in repo-owned UI components.
   `currentActionPoints` for the player's combatant and expires unspent action
   points at round end.
 - Use route/component tests plus Convex domain tests as the primary correctness
-  net, and keep `pnpm test:e2e` as the required AppHost/browser gate because
-  the affected flows are user-facing and Convex-backed.
+  net during implementation, and keep `pnpm test:e2e` as the required final
+  AppHost/browser gate because the affected flows are user-facing and
+  Convex-backed.
 
 ## Phase 1: Design Summary
 

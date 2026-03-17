@@ -42,8 +42,8 @@
 
 <!-- Recommended additions for app-style repos:
 - Require focused integration coverage for each major implementation slice
-- Require incremental E2E validation for browser-visible flow changes
-- Require response-to-failure rules before more work continues
+- Require final E2E validation when implementation appears complete for browser-visible flow changes
+- Require fix-and-rerun response rules when focused or E2E checks fail
 - If delegated subagents are available and allowed, require a standards-review
   subagent pass against coding standards docs and created code
 - Require explicit user confirmation before editing coding standards docs

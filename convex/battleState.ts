@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
@@ -6,7 +6,6 @@ import {
   applyStudyAdvantage,
   buildDefaultBossCatalog,
   chooseFallbackSpriteKey,
-  resolveRoundState,
   scaleBossCombatValues,
 } from "./lib/battleState";
 import type { BattleSkillCategory } from "./lib/battleValidation";
@@ -16,10 +15,7 @@ import {
   validateEncounterBossSelection,
 } from "./lib/battleValidation";
 import { createJoinError, JOIN_ERROR_CODES } from "./lib/joinErrors";
-
-function getDefaultPlayerActionPoints(tokenBalance: number) {
-  return Math.max(2, Math.min(5, tokenBalance + 2));
-}
+import { startRoundForSession } from "./quizRounds";
 
 async function getEncounterCombatants(
   ctx: QueryCtx | MutationCtx,
@@ -209,9 +205,272 @@ export const syncDefaultBossCatalog = mutation({
   },
 });
 
+function isPlayerCombatant(combatant: Doc<"combatantStates">) {
+  return combatant.combatantType === "player";
+}
+
+function isBossCombatant(combatant: Doc<"combatantStates">) {
+  return combatant.combatantType === "boss";
+}
+
+function isActiveCombatant(combatant: Doc<"combatantStates">) {
+  return combatant.state === "active";
+}
+
+async function getRoundParticipants(
+  ctx: MutationCtx,
+  roundId: Id<"gameRounds">,
+) {
+  return await ctx.db
+    .query("roundParticipants")
+    .withIndex("by_round", (q) => q.eq("roundId", roundId))
+    .collect();
+}
+
+async function getOrCreateExchange(
+  ctx: MutationCtx,
+  roundId: Id<"gameRounds">,
+  encounterId: Id<"battleEncounters">,
+  exchangeNumber: number,
+) {
+  const existing = await ctx.db
+    .query("battleExchanges")
+    .withIndex("by_round_and_exchange", (q) =>
+      q.eq("roundId", roundId).eq("exchangeNumber", exchangeNumber),
+    )
+    .unique();
+
+  if (existing) {
+    return existing;
+  }
+
+  const exchangeId = await ctx.db.insert("battleExchanges", {
+    roundId,
+    encounterId,
+    exchangeNumber,
+    status: "pending",
+    bossActionSummary: [],
+    playerTurnOrder: [],
+    playerActions: [],
+    resolvedAt: null,
+  });
+
+  const created = await ctx.db.get(exchangeId);
+  if (!created) {
+    createJoinError(
+      JOIN_ERROR_CODES.invalidBattleConfig,
+      "The battle exchange could not be created.",
+    );
+  }
+
+  return created;
+}
+
+function pickBossTarget(playerCombatants: Doc<"combatantStates">[]) {
+  return (
+    [...playerCombatants].filter(isActiveCombatant).sort((left, right) => {
+      if (right.currentHealth !== left.currentHealth) {
+        return right.currentHealth - left.currentHealth;
+      }
+
+      return left.lineupSlot - right.lineupSlot;
+    })[0] ?? null
+  );
+}
+
+function sortPlayerTurnOrder(
+  playerActions: Array<{
+    playerEntryId: Id<"playerEntries">;
+    skillId: Id<"skillDefinitions">;
+    targetId: Id<"combatantStates"> | null;
+    submittedAt: number;
+  }>,
+  combatantsByPlayerEntry: Map<Id<"playerEntries">, Doc<"combatantStates">>,
+) {
+  return [...playerActions].sort((left, right) => {
+    const leftCombatant = combatantsByPlayerEntry.get(left.playerEntryId);
+    const rightCombatant = combatantsByPlayerEntry.get(right.playerEntryId);
+    const leftPoints = leftCombatant?.currentActionPoints ?? 0;
+    const rightPoints = rightCombatant?.currentActionPoints ?? 0;
+
+    if (rightPoints !== leftPoints) {
+      return rightPoints - leftPoints;
+    }
+
+    return Math.random() >= 0.5 ? 1 : -1;
+  });
+}
+
+async function completeEncounter(
+  ctx: MutationCtx,
+  session: Doc<"gameSessions">,
+  encounter: Doc<"battleEncounters">,
+  reason: "players_won" | "bosses_won" | "host_ended" | "no_actions_left",
+  now: number,
+) {
+  await ctx.db.patch(session._id, {
+    activeEncounterId: null,
+    activeRoundId: null,
+    battleJoinStatus: "post_battle",
+    closedAt: now,
+    completedAt: now,
+    completionReason: reason,
+    gamePhase: "results",
+    joinStatus: "closed",
+    status: "completed",
+    updatedAt: now,
+  });
+
+  await ctx.db.patch(encounter._id, {
+    endedAt: now,
+    lastResolvedAt: now,
+    status:
+      reason === "players_won"
+        ? "victory"
+        : reason === "host_ended"
+          ? "completed"
+          : "defeat",
+  });
+
+  if (session.activeRoundId) {
+    await ctx.db.patch(session.activeRoundId, {
+      completedAt: now,
+      phase: "completed",
+      status: "completed",
+    });
+  }
+}
+
+async function advanceFromResolvedExchange(
+  ctx: MutationCtx,
+  session: Doc<"gameSessions">,
+  encounter: Doc<"battleEncounters">,
+  round: Doc<"gameRounds">,
+  combatants: Doc<"combatantStates">[],
+  now: number,
+) {
+  const activePlayers = combatants.filter(
+    (combatant) => isPlayerCombatant(combatant) && isActiveCombatant(combatant),
+  );
+  const activeBosses = combatants.filter(
+    (combatant) => isBossCombatant(combatant) && isActiveCombatant(combatant),
+  );
+
+  if (activeBosses.length === 0) {
+    await completeEncounter(ctx, session, encounter, "players_won", now);
+    return {
+      completionReason: "players_won" as const,
+      phase: "results" as const,
+    };
+  }
+
+  if (activePlayers.length === 0) {
+    await completeEncounter(ctx, session, encounter, "bosses_won", now);
+    return {
+      completionReason: "bosses_won" as const,
+      phase: "results" as const,
+    };
+  }
+
+  const exhaustedPlayers = activePlayers.every(
+    (combatant) => combatant.currentActionPoints <= 0,
+  );
+  const exchangesResolved = (round.exchangesResolved ?? 0) + 1;
+  const hitExchangeLimit = exchangesResolved >= (round.exchangeLimit ?? 1);
+
+  if (hitExchangeLimit || exhaustedPlayers) {
+    await ctx.db.patch(round._id, {
+      completedAt: now,
+      exchangesResolved,
+      phase: "completed",
+      status: "completed",
+    });
+
+    const sessionForNextRound = {
+      ...session,
+      activeRoundId: null,
+      updatedAt: now,
+    };
+    await ctx.db.patch(session._id, {
+      activeRoundId: null,
+      gamePhase: "quiz",
+      updatedAt: now,
+    });
+
+    const nextConfig = {
+      allowedCategories: session.allowedCategories ?? round.allowedCategories,
+      allowedComplexities:
+        session.allowedComplexities ?? round.allowedComplexities,
+      questionTarget: session.questionTargetPerRound ?? round.questionTarget,
+    };
+
+    try {
+      await startRoundForSession(ctx, sessionForNextRound, nextConfig);
+      return { completionReason: null, phase: "quiz" as const };
+    } catch (error) {
+      if (
+        error instanceof ConvexError &&
+        error.data &&
+        typeof error.data === "object" &&
+        "code" in error.data &&
+        error.data.code === JOIN_ERROR_CODES.insufficientQuestions
+      ) {
+        await completeEncounter(
+          ctx,
+          session,
+          encounter,
+          "no_actions_left",
+          now,
+        );
+        return {
+          completionReason: "no_actions_left" as const,
+          phase: "results" as const,
+        };
+      }
+
+      throw error;
+    }
+  }
+
+  const participants = await getRoundParticipants(ctx, round._id);
+  for (const participant of participants) {
+    const combatant = participant.playerEntryId
+      ? combatants.find(
+          (currentCombatant) =>
+            currentCombatant.playerEntryId === participant.playerEntryId,
+        )
+      : null;
+
+    await ctx.db.patch(participant._id, {
+      status:
+        participant.status === "removed_disconnected"
+          ? participant.status
+          : combatant?.state === "knocked_out"
+            ? "knocked_out"
+            : (combatant?.currentActionPoints ?? 0) > 0
+              ? "quiz_complete"
+              : "action_ready",
+    });
+  }
+
+  await ctx.db.patch(round._id, {
+    exchangesResolved,
+    phase: "action_selection",
+  });
+  await ctx.db.patch(session._id, {
+    gamePhase: "action_selection",
+    updatedAt: now,
+  });
+
+  return { completionReason: null, phase: "action_selection" as const };
+}
+
 export const startEncounter = mutation({
   args: {
     bossDefinitionIds: v.array(v.id("bossDefinitions")),
+    questionTarget: v.number(),
+    allowedCategories: v.array(v.string()),
+    allowedComplexities: v.array(v.string()),
     sessionId: v.id("gameSessions"),
   },
   handler: async (ctx, args) => {
@@ -230,7 +489,7 @@ export const startEncounter = mutation({
       );
     }
 
-    if (session.activeEncounterId) {
+    if (session.activeEncounterId || session.status === "completed") {
       createJoinError(
         JOIN_ERROR_CODES.invalidBattleConfig,
         "A battle is already active for this session.",
@@ -289,8 +548,8 @@ export const startEncounter = mutation({
         lineupSlot: index + 1,
         currentHealth: 10,
         maxHealth: 10,
-        currentActionPoints: getDefaultPlayerActionPoints(player.tokenBalance),
-        actionPointsPerRound: getDefaultPlayerActionPoints(player.tokenBalance),
+        currentActionPoints: 0,
+        actionPointsPerRound: 0,
         state: "active",
         availableSkillIds: playerSkillIds,
         pendingEffectIds: [],
@@ -351,9 +610,40 @@ export const startEncounter = mutation({
 
     await ctx.db.patch(session._id, {
       activeEncounterId: encounterId,
+      joinStatus: "closed",
       battleJoinStatus: "active_battle",
+      gamePhase: "quiz",
+      selectedBossDefinitionIds: args.bossDefinitionIds,
+      questionTargetPerRound: args.questionTarget,
+      allowedCategories: args.allowedCategories,
+      allowedComplexities: args.allowedComplexities,
+      configLockedAt: now,
+      closedAt: now,
       updatedAt: now,
     });
+
+    await startRoundForSession(
+      ctx,
+      {
+        ...session,
+        activeEncounterId: encounterId,
+        joinStatus: "closed",
+        battleJoinStatus: "active_battle",
+        gamePhase: "quiz",
+        selectedBossDefinitionIds: args.bossDefinitionIds,
+        questionTargetPerRound: args.questionTarget,
+        allowedCategories: args.allowedCategories,
+        allowedComplexities: args.allowedComplexities,
+        configLockedAt: now,
+        closedAt: now,
+        updatedAt: now,
+      },
+      {
+        questionTarget: args.questionTarget,
+        allowedCategories: args.allowedCategories,
+        allowedComplexities: args.allowedComplexities,
+      },
+    );
 
     return {
       encounterId,
@@ -364,11 +654,36 @@ export const startEncounter = mutation({
 
 export const submitPlayerAction = mutation({
   args: {
+    roundId: v.id("gameRounds"),
     encounterId: v.id("battleEncounters"),
     playerEntryId: v.id("playerEntries"),
     skillId: v.id("skillDefinitions"),
+    targetId: v.optional(v.union(v.id("combatantStates"), v.null())),
   },
   handler: async (ctx, args) => {
+    const round = await ctx.db.get(args.roundId);
+    if (!round || round.status !== "active") {
+      createJoinError(
+        JOIN_ERROR_CODES.noActiveRound,
+        "There is no active round ready to collect battle actions.",
+      );
+    }
+
+    if ((round.phase ?? "quiz") !== "action_selection") {
+      createJoinError(
+        JOIN_ERROR_CODES.invalidBattleAction,
+        "Players can only pick actions during the action selection step.",
+      );
+    }
+
+    const encounter = await ctx.db.get(args.encounterId);
+    if (!encounter || encounter.status !== "active") {
+      createJoinError(
+        JOIN_ERROR_CODES.noActiveEncounter,
+        "There is no active battle state for this player.",
+      );
+    }
+
     const combatant = await ctx.db
       .query("combatantStates")
       .withIndex("by_player_entry", (q) =>
@@ -390,6 +705,20 @@ export const submitPlayerAction = mutation({
       );
     }
 
+    const participant = await ctx.db
+      .query("roundParticipants")
+      .withIndex("by_round_and_player", (q) =>
+        q.eq("roundId", round._id).eq("playerEntryId", args.playerEntryId),
+      )
+      .unique();
+
+    if (!participant || participant.status === "removed_disconnected") {
+      createJoinError(
+        JOIN_ERROR_CODES.battleJoinBlocked,
+        "This player is no longer active in the current round.",
+      );
+    }
+
     const skill = await ctx.db.get(args.skillId);
     if (!skill || !combatant.availableSkillIds.includes(args.skillId)) {
       createJoinError(
@@ -405,26 +734,364 @@ export const submitPlayerAction = mutation({
       );
     }
 
-    const nextQuizAdvantage = applyStudyAdvantage(skill.category);
-    await ctx.db.patch(combatant._id, {
-      currentActionPoints:
-        combatant.currentActionPoints - skill.actionPointCost,
-      nextQuizAdvantage: nextQuizAdvantage ?? combatant.nextQuizAdvantage,
-      pendingEffectIds: [...combatant.pendingEffectIds, skill.effectRule],
-      lastUpdatedAt: Date.now(),
-    });
+    const encounterCombatants = await getEncounterCombatants(
+      ctx,
+      encounter._id,
+    );
+    const target =
+      args.targetId === undefined
+        ? null
+        : (encounterCombatants.find(
+            (currentCombatant) => currentCombatant._id === args.targetId,
+          ) ?? null);
 
-    return {
-      combatantStateId: combatant._id,
-      nextQuizAdvantage: nextQuizAdvantage ?? combatant.nextQuizAdvantage,
-      remainingActionPoints:
-        combatant.currentActionPoints - skill.actionPointCost,
-    };
+    if (
+      skill.targetScope === "enemy" &&
+      (!target || !isBossCombatant(target))
+    ) {
+      createJoinError(
+        JOIN_ERROR_CODES.invalidBattleAction,
+        "An active boss target is required for that action.",
+      );
+    }
+
+    if (
+      skill.targetScope === "self" &&
+      target &&
+      target._id !== combatant._id
+    ) {
+      createJoinError(
+        JOIN_ERROR_CODES.invalidBattleAction,
+        "This action can only target the current player.",
+      );
+    }
+
+    const exchange = await getOrCreateExchange(
+      ctx,
+      round._id,
+      encounter._id,
+      (round.exchangesResolved ?? 0) + 1,
+    );
+    const duplicateAction = exchange.playerActions.some(
+      (action) => action.playerEntryId === args.playerEntryId,
+    );
+    if (duplicateAction) {
+      createJoinError(
+        JOIN_ERROR_CODES.invalidBattleAction,
+        "This player has already chosen an action for the current exchange.",
+      );
+    }
+
+    const submittedAt = Date.now();
+    await ctx.db.patch(exchange._id, {
+      playerActions: [
+        ...exchange.playerActions,
+        {
+          playerEntryId: args.playerEntryId,
+          skillId: args.skillId,
+          submittedAt,
+          targetId:
+            skill.targetScope === "self"
+              ? combatant._id
+              : (args.targetId ?? null),
+        },
+      ],
+    });
+    await ctx.db.patch(participant._id, {
+      status: "action_ready",
+    });
+    const updatedExchange = await ctx.db.get(exchange._id);
+    if (!updatedExchange) {
+      createJoinError(
+        JOIN_ERROR_CODES.invalidBattleConfig,
+        "The exchange state disappeared before it could resolve.",
+      );
+    }
+
+    const requiredActors = encounterCombatants.filter(
+      (currentCombatant) =>
+        isPlayerCombatant(currentCombatant) &&
+        isActiveCombatant(currentCombatant) &&
+        currentCombatant.currentActionPoints > 0,
+    );
+    const readyPlayerIds = new Set(
+      updatedExchange.playerActions.map((action) => action.playerEntryId),
+    );
+    const readyToResolve = requiredActors.every((currentCombatant) =>
+      currentCombatant.playerEntryId
+        ? readyPlayerIds.has(currentCombatant.playerEntryId)
+        : true,
+    );
+
+    return readyToResolve
+      ? await resolveBattleExchangeInternal(ctx, {
+          encounter,
+          round,
+          sessionId: encounter.sessionId,
+        })
+      : {
+          exchangeId: exchange._id,
+          phase: "action_selection" as const,
+          readyToResolve: false,
+        };
   },
 });
 
-export const resolveEncounterRound = mutation({
+async function resolveBattleExchangeInternal(
+  ctx: MutationCtx,
   args: {
+    encounter: Doc<"battleEncounters">;
+    round: Doc<"gameRounds">;
+    sessionId: Id<"gameSessions">;
+  },
+) {
+  const session = await ctx.db.get(args.sessionId);
+  if (!session) {
+    createJoinError(
+      JOIN_ERROR_CODES.sessionNotFound,
+      "The session for this battle exchange is missing.",
+    );
+  }
+
+  const exchange = await getOrCreateExchange(
+    ctx,
+    args.round._id,
+    args.encounter._id,
+    (args.round.exchangesResolved ?? 0) + 1,
+  );
+  const combatants = await getEncounterCombatants(ctx, args.encounter._id);
+  const combatantsById = new Map(
+    combatants.map((combatant) => [combatant._id, combatant]),
+  );
+  const combatantsByPlayerEntry = new Map(
+    combatants
+      .filter(
+        (combatant) => isPlayerCombatant(combatant) && combatant.playerEntryId,
+      )
+      .map((combatant) => [
+        combatant.playerEntryId as Id<"playerEntries">,
+        combatant,
+      ]),
+  );
+  const activePlayers = combatants.filter(
+    (combatant) => isPlayerCombatant(combatant) && isActiveCombatant(combatant),
+  );
+  const activeBosses = combatants.filter(
+    (combatant) => isBossCombatant(combatant) && isActiveCombatant(combatant),
+  );
+  const playerActions = sortPlayerTurnOrder(
+    exchange.playerActions,
+    combatantsByPlayerEntry,
+  );
+  const now = Date.now();
+
+  await ctx.db.patch(args.round._id, {
+    phase: "battle_resolution",
+  });
+  await ctx.db.patch(session._id, {
+    gamePhase: "battle_resolution",
+    updatedAt: now,
+  });
+  await ctx.db.patch(exchange._id, {
+    playerTurnOrder: playerActions
+      .map((action) => combatantsByPlayerEntry.get(action.playerEntryId)?._id)
+      .filter(Boolean) as Id<"combatantStates">[],
+    status: "resolving",
+  });
+
+  let partyHealth = args.encounter.partyCurrentHealth;
+  const playerHealth = new Map(
+    activePlayers.map((combatant) => [combatant._id, combatant.currentHealth]),
+  );
+  const bossHealth = new Map(
+    activeBosses.map((combatant) => [combatant._id, combatant.currentHealth]),
+  );
+  const bossActionSummary: Array<{
+    actorId: Id<"combatantStates">;
+    damage: number;
+    skillName: string;
+    targetId: Id<"combatantStates"> | null;
+  }> = [];
+
+  for (const boss of activeBosses) {
+    const target = pickBossTarget(
+      activePlayers.map((currentCombatant) => ({
+        ...currentCombatant,
+        currentHealth:
+          playerHealth.get(currentCombatant._id) ??
+          currentCombatant.currentHealth,
+      })),
+    );
+
+    if (!target) {
+      continue;
+    }
+
+    const damage = Math.max(1, boss.actionPointsPerRound * 2);
+    const nextHealth = Math.max(
+      0,
+      (playerHealth.get(target._id) ?? target.currentHealth) - damage,
+    );
+    playerHealth.set(target._id, nextHealth);
+    partyHealth = Math.max(0, partyHealth - damage);
+    bossActionSummary.push({
+      actorId: boss._id,
+      damage,
+      skillName: "Boss Strike",
+      targetId: target._id,
+    });
+  }
+
+  for (const action of playerActions) {
+    const actor = combatantsByPlayerEntry.get(action.playerEntryId);
+    if (!actor || (playerHealth.get(actor._id) ?? actor.currentHealth) <= 0) {
+      continue;
+    }
+
+    const skill = await ctx.db.get(action.skillId);
+    if (!skill) {
+      continue;
+    }
+
+    const remainingActionPoints = Math.max(
+      0,
+      actor.currentActionPoints - skill.actionPointCost,
+    );
+
+    if (skill.category === "attack") {
+      const targetId =
+        action.targetId ??
+        activeBosses.find(
+          (boss) => (bossHealth.get(boss._id) ?? boss.currentHealth) > 0,
+        )?._id ??
+        null;
+      if (targetId) {
+        const target = combatantsById.get(targetId);
+        if (target && isBossCombatant(target)) {
+          const nextHealth = Math.max(
+            0,
+            (bossHealth.get(targetId) ?? target.currentHealth) - 4,
+          );
+          bossHealth.set(targetId, nextHealth);
+        }
+      }
+    }
+
+    if (skill.category === "heal") {
+      const targetId = action.targetId ?? actor._id;
+      const target = combatantsById.get(targetId);
+      if (target && isPlayerCombatant(target)) {
+        const nextHealth = Math.min(
+          target.maxHealth,
+          (playerHealth.get(targetId) ?? target.currentHealth) + 3,
+        );
+        playerHealth.set(targetId, nextHealth);
+        partyHealth = Math.min(args.encounter.partyMaxHealth, partyHealth + 3);
+      }
+    }
+
+    if (skill.category === "defend") {
+      const nextHealth = Math.min(
+        actor.maxHealth,
+        (playerHealth.get(actor._id) ?? actor.currentHealth) + 2,
+      );
+      playerHealth.set(actor._id, nextHealth);
+      partyHealth = Math.min(args.encounter.partyMaxHealth, partyHealth + 2);
+    }
+
+    if (skill.category === "study") {
+      const nextQuizAdvantage = applyStudyAdvantage(skill.category);
+      await ctx.db.patch(actor._id, {
+        nextQuizAdvantage: nextQuizAdvantage ?? actor.nextQuizAdvantage,
+      });
+
+      if (actor.playerEntryId) {
+        await ctx.db.patch(actor.playerEntryId, {
+          nextQuizAdvantage: nextQuizAdvantage ?? "none",
+        });
+      }
+    }
+
+    await ctx.db.patch(actor._id, {
+      currentActionPoints: remainingActionPoints,
+      lastUpdatedAt: now,
+    });
+  }
+
+  const resolvedCombatants = await getEncounterCombatants(
+    ctx,
+    args.encounter._id,
+  );
+  for (const combatant of resolvedCombatants) {
+    if (isPlayerCombatant(combatant)) {
+      const nextHealth =
+        playerHealth.get(combatant._id) ?? combatant.currentHealth;
+      await ctx.db.patch(combatant._id, {
+        currentHealth: nextHealth,
+        lastUpdatedAt: now,
+        state: nextHealth === 0 ? "knocked_out" : combatant.state,
+      });
+    }
+
+    if (isBossCombatant(combatant)) {
+      const nextHealth =
+        bossHealth.get(combatant._id) ?? combatant.currentHealth;
+      await ctx.db.patch(combatant._id, {
+        currentHealth: nextHealth,
+        lastUpdatedAt: now,
+        state: nextHealth === 0 ? "defeated" : combatant.state,
+      });
+    }
+  }
+
+  const refreshedCombatants = await getEncounterCombatants(
+    ctx,
+    args.encounter._id,
+  );
+  const activeBossCount = refreshedCombatants.filter(
+    (combatant) => isBossCombatant(combatant) && isActiveCombatant(combatant),
+  ).length;
+  await ctx.db.patch(args.encounter._id, {
+    activeBossCount,
+    battleRoundNumber: args.encounter.battleRoundNumber + 1,
+    lastResolvedAt: now,
+    partyCurrentHealth: Math.max(0, partyHealth),
+  });
+  await ctx.db.patch(exchange._id, {
+    bossActionSummary,
+    resolvedAt: now,
+    status: "resolved",
+  });
+
+  const refreshedEncounter = await ctx.db.get(args.encounter._id);
+  const refreshedRound = await ctx.db.get(args.round._id);
+  if (!refreshedEncounter || !refreshedRound) {
+    createJoinError(
+      JOIN_ERROR_CODES.invalidBattleConfig,
+      "The battle state could not be refreshed after resolution.",
+    );
+  }
+
+  const advancement = await advanceFromResolvedExchange(
+    ctx,
+    session,
+    refreshedEncounter,
+    refreshedRound,
+    refreshedCombatants,
+    now,
+  );
+
+  return {
+    completionReason: advancement.completionReason,
+    exchangeId: exchange._id,
+    phase: advancement.phase,
+    readyToResolve: true,
+  };
+}
+
+export const resolveBattleExchange = mutation({
+  args: {
+    roundId: v.id("gameRounds"),
     encounterId: v.id("battleEncounters"),
   },
   handler: async (ctx, args) => {
@@ -436,103 +1103,20 @@ export const resolveEncounterRound = mutation({
       );
     }
 
-    const combatants = await getEncounterCombatants(ctx, encounter._id);
-
-    const bossStates = combatants
-      .filter((combatant) => combatant.combatantType === "boss")
-      .map((combatant) => {
-        const pendingDamage = combatant.pendingEffectIds
-          .filter((effect: string) => effect.startsWith("boss_damage:"))
-          .reduce(
-            (sum: number, effect: string) =>
-              sum + Number(effect.split(":")[1] ?? 0),
-            0,
-          );
-
-        return {
-          currentHealth: combatant.currentHealth,
-          id: combatant._id,
-          pendingHealthDelta: -pendingDamage,
-          state: combatant.state,
-        } as const;
-      });
-
-    const partyHeal = combatants
-      .filter((combatant) => combatant.combatantType === "player")
-      .flatMap((combatant) => combatant.pendingEffectIds)
-      .filter((effect) => effect.startsWith("party_heal:"))
-      .reduce(
-        (sum: number, effect: string) =>
-          sum + Number(effect.split(":")[1] ?? 0),
-        0,
+    const round = await ctx.db.get(args.roundId);
+    if (!round || round.status !== "active") {
+      createJoinError(
+        JOIN_ERROR_CODES.noActiveRound,
+        "There is no active round to resolve.",
       );
-    const partyGuard = combatants
-      .filter((combatant) => combatant.combatantType === "player")
-      .flatMap((combatant) => combatant.pendingEffectIds)
-      .filter((effect) => effect.startsWith("party_guard:"))
-      .reduce(
-        (sum: number, effect: string) =>
-          sum + Number(effect.split(":")[1] ?? 0),
-        0,
-      );
-    const bossDamage = combatants
-      .filter((combatant) => combatant.combatantType === "boss")
-      .reduce((sum, combatant) => sum + combatant.currentActionPoints, 0);
+    }
 
-    const resolution = resolveRoundState({
-      bossStates,
-      partyCurrentHealth: encounter.partyCurrentHealth,
-      partyPendingHealthDelta: partyHeal - Math.max(0, bossDamage - partyGuard),
+    return await resolveBattleExchangeInternal(ctx, {
+      encounter,
+      round,
+      sessionId: encounter.sessionId,
     });
-
-    const now = Date.now();
-    for (const bossState of resolution.resolvedBosses) {
-      await ctx.db.patch(bossState.id as Id<"combatantStates">, {
-        currentHealth: bossState.currentHealth,
-        pendingEffectIds: [],
-        state: bossState.state,
-        currentActionPoints: 0,
-        lastUpdatedAt: now,
-      });
-    }
-
-    const playerCombatants = combatants.filter(
-      (combatant) => combatant.combatantType === "player",
-    );
-    for (const player of playerCombatants) {
-      const nextHealth = Math.max(
-        0,
-        Math.min(player.maxHealth, player.currentHealth + partyHeal),
-      );
-      await ctx.db.patch(player._id, {
-        currentHealth: nextHealth,
-        state: nextHealth === 0 ? "knocked_out" : "active",
-        pendingEffectIds: [],
-        currentActionPoints: player.actionPointsPerRound,
-        lastUpdatedAt: now,
-      });
-    }
-
-    const session = await ctx.db.get(encounter.sessionId);
-    await ctx.db.patch(encounter._id, {
-      battleRoundNumber: encounter.battleRoundNumber + 1,
-      lastResolvedAt: now,
-      partyCurrentHealth: resolution.partyHealth,
-      status: resolution.encounterEnded
-        ? "victory"
-        : resolution.partyDefeated
-          ? "defeat"
-          : "active",
-    });
-
-    if (session && (resolution.encounterEnded || resolution.partyDefeated)) {
-      await ctx.db.patch(session._id, {
-        activeEncounterId: null,
-        battleJoinStatus: "post_battle",
-        updatedAt: now,
-      });
-    }
-
-    return resolution;
   },
 });
+
+export const resolveEncounterRound = resolveBattleExchange;

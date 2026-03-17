@@ -14,7 +14,7 @@
 **Language/Version**: TypeScript 5.x, React 19, or NEEDS CLARIFICATION  
 **Primary Dependencies**: TanStack Start, TanStack Router, TanStack Query, Tailwind CSS v4, Convex, Cloudflare/Wrangler, or NEEDS CLARIFICATION  
 **Storage**: Convex and browser-managed client state, or NEEDS CLARIFICATION  
-**Testing**: Vitest, Testing Library, focused integration checks, incremental `pnpm test:e2e` for browser-visible slices, and final repo-wide verification, or NEEDS CLARIFICATION  
+**Testing**: Vitest, Testing Library, focused per-slice integration checks, final `pnpm test:e2e` for browser-visible flows, and final repo-wide verification, or NEEDS CLARIFICATION  
 **Target Platform**: Cloudflare-hosted web application for modern browsers  
 **Project Type**: Full-stack web app  
 **Performance Goals**: [Route-specific UX and latency targets or NEEDS CLARIFICATION]  
@@ -33,9 +33,9 @@
       unchecked `any` or silent fallback is required.
 - [ ] Test plan covers the narrowest useful automated tests for every changed
       behavior and names the verification commands to run.
-- [ ] Implementation slices define when focused integration checks and
-      `pnpm test:e2e` run, plus how failures are handled before more work
-      continues.
+- [ ] Implementation slices define focused integration checks, and the plan
+      defines when the final `pnpm test:e2e` gate runs plus how failures are
+      fixed and rerun before the work is called complete.
 - [ ] Loading, empty, success, and error states are defined for each affected
       user-facing flow.
 - [ ] Observability and performance impact are addressed for SSR, streaming,
@@ -95,14 +95,14 @@ directories captured above]
 
 ## Slice Verification Plan
 
-- **Slice 1 verification**: [Focused integration commands + `pnpm test:e2e`
-  when browser-visible behavior changes]
-- **Slice 2 verification**: [Focused integration commands + `pnpm test:e2e`
-  when browser-visible behavior changes]
-- **Slice 3 verification**: [Focused integration commands + `pnpm test:e2e`
-  when browser-visible behavior changes]
-- **Failure response**: [Fix in-slice by default; document only proven unrelated
-  blockers with exact command output summary]
+- **Slice 1 verification**: [Focused integration commands for this slice]
+- **Slice 2 verification**: [Focused integration commands for this slice]
+- **Slice 3 verification**: [Focused integration commands for this slice]
+- **Final browser gate**: [`pnpm test:e2e` when implementation appears complete
+  for browser-visible or Convex-backed runtime changes]
+- **Failure response**: [Fix and rerun the failing focused or E2E command by
+  default; document only proven unrelated blockers with exact command output
+  summary]
 
 ## Complexity Tracking
 

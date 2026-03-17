@@ -27,20 +27,47 @@ function getSessionBattleJoinStatus(session: Doc<"gameSessions">) {
   return session.battleJoinStatus ?? "pre_battle";
 }
 
+function getRoundPhase(round: Doc<"gameRounds">) {
+  return round.phase ?? "quiz";
+}
+
+function chooseExchangeLimit() {
+  return (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
+}
+
 async function getJoinedPlayers(
   ctx: QuizAccessCtx,
   sessionId: Id<"gameSessions">,
   roundNumber: number,
 ): Promise<Doc<"playerEntries">[]> {
+  const session = await ctx.db.get(sessionId);
+  const encounterId = session?.activeEncounterId ?? null;
   const players = await ctx.db
     .query("playerEntries")
     .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
     .collect();
+  const combatants = encounterId
+    ? await ctx.db
+        .query("combatantStates")
+        .withIndex("by_encounter", (q) => q.eq("encounterId", encounterId))
+        .collect()
+    : [];
+  const knockedOutPlayers = new Set(
+    combatants
+      .filter(
+        (combatant) =>
+          combatant.combatantType === "player" &&
+          combatant.playerEntryId &&
+          combatant.state === "knocked_out",
+      )
+      .map((combatant) => combatant.playerEntryId as Id<"playerEntries">),
+  );
 
   return players.filter(
     (player) =>
       player.joinStatus === "joined" &&
-      player.eligibleFromRoundNumber <= roundNumber,
+      player.eligibleFromRoundNumber <= roundNumber &&
+      !knockedOutPlayers.has(player._id),
   );
 }
 
@@ -64,10 +91,87 @@ async function getPriorAssignments(
     }));
 }
 
+async function getRoundParticipants(
+  ctx: QuizAccessCtx,
+  roundId: Id<"gameRounds">,
+) {
+  return await ctx.db
+    .query("roundParticipants")
+    .withIndex("by_round", (q) => q.eq("roundId", roundId))
+    .collect();
+}
+
+async function createRoundParticipants(
+  ctx: MutationCtx,
+  sessionId: Id<"gameSessions">,
+  roundId: Id<"gameRounds">,
+  roundNumber: number,
+) {
+  const players = await getJoinedPlayers(ctx, sessionId, roundNumber);
+  const now = Date.now();
+
+  for (const player of players) {
+    await ctx.db.insert("roundParticipants", {
+      sessionId,
+      roundId,
+      playerEntryId: player._id,
+      status: "active",
+      completedQuizAt: null,
+      removedAt: null,
+      canReturnNextRound: true,
+    });
+
+    await ctx.db.patch(player._id, {
+      lastSeenAt: now,
+    });
+  }
+}
+
 function isSkillDefinition(
   skill: Doc<"skillDefinitions"> | null,
 ): skill is Doc<"skillDefinitions"> {
   return skill !== null;
+}
+
+function getBattleStatus(input: {
+  activeAssignment: Doc<"quizAssignments"> | undefined;
+  activeEncounter: Doc<"battleEncounters"> | null;
+  activeRound: Doc<"gameRounds"> | null;
+  gamePhase: string | null | undefined;
+  results: boolean;
+  roundParticipantStatus: Doc<"roundParticipants">["status"] | null;
+}) {
+  if (input.results) {
+    return "results";
+  }
+
+  if (!input.activeEncounter) {
+    return "pre_battle";
+  }
+
+  if (input.activeAssignment) {
+    return "active_quiz";
+  }
+
+  if (input.gamePhase === "waiting_for_players") {
+    return "waiting_for_players";
+  }
+
+  if (input.activeRound?.phase === "action_selection") {
+    if (input.roundParticipantStatus === "action_ready") {
+      return "battle_resolution";
+    }
+
+    return input.roundParticipantStatus === "removed_disconnected"
+      ? "removed_from_round"
+      : "action_selection";
+  }
+
+  if (input.activeRound?.phase === "battle_resolution") {
+    return "battle_resolution";
+  }
+
+  return "active_battle";
 }
 
 async function createBatchAssignments(
@@ -76,7 +180,22 @@ async function createBatchAssignments(
   round: Doc<"gameRounds">,
   batchNumber: number,
 ) {
-  const players = await getJoinedPlayers(ctx, sessionId, round.roundNumber);
+  const participants = await getRoundParticipants(ctx, round._id);
+  const playerEntries = await getJoinedPlayers(
+    ctx,
+    sessionId,
+    round.roundNumber,
+  );
+  const players = playerEntries.filter((player) => {
+    const participant = participants.find(
+      (currentParticipant) => currentParticipant.playerEntryId === player._id,
+    );
+
+    return participant
+      ? participant.status !== "removed_disconnected" &&
+          participant.status !== "knocked_out"
+      : true;
+  });
   if (players.length === 0) {
     return [];
   }
@@ -142,6 +261,20 @@ async function createBatchAssignments(
   return assignmentIds;
 }
 
+async function createRoundAssignments(
+  ctx: MutationCtx,
+  sessionId: Id<"gameSessions">,
+  round: Doc<"gameRounds">,
+) {
+  for (
+    let batchNumber = 1;
+    batchNumber <= round.questionTarget;
+    batchNumber += 1
+  ) {
+    await createBatchAssignments(ctx, sessionId, round, batchNumber);
+  }
+}
+
 export async function advanceRoundIfNeeded(
   ctx: MutationCtx,
   roundId: Id<"gameRounds">,
@@ -151,55 +284,196 @@ export async function advanceRoundIfNeeded(
     return;
   }
 
-  const currentBatchNumber = round.questionsCompleted + 1;
-  const batchAssignments = (
+  const roundAssignments = (
     await ctx.db
       .query("quizAssignments")
-      .withIndex("by_round_and_batch", (q) =>
-        q.eq("roundId", roundId).eq("batchNumber", currentBatchNumber),
-      )
+      .withIndex("by_round", (q) => q.eq("roundId", roundId))
       .collect()
-  ).filter((assignment) => assignment.status === "presented");
+  ).filter(
+    (assignment) =>
+      assignment.status === "presented" || assignment.status === "answered",
+  );
+  const now = Date.now();
 
-  if (batchAssignments.length > 0) {
+  if (roundAssignments.length > 0) {
+    if (getRoundPhase(round) !== "waiting_for_players") {
+      await ctx.db.patch(round._id, {
+        phase: "waiting_for_players",
+      });
+
+      const waitingSession = await ctx.db.get(round.sessionId);
+      if (waitingSession) {
+        await ctx.db.patch(waitingSession._id, {
+          gamePhase: "waiting_for_players",
+          updatedAt: now,
+        });
+      }
+    }
+
     return;
   }
 
-  const now = Date.now();
-  const nextCompleted = round.questionsCompleted + 1;
+  const nextCompleted = round.questionTarget;
   const session = await ctx.db.get(round.sessionId);
   if (!session) {
     return;
   }
 
-  if (nextCompleted >= round.questionTarget) {
-    await ctx.db.patch(round._id, {
-      status: "completed",
-      questionsCompleted: nextCompleted,
-      completedAt: now,
+  const roundAnswers = await ctx.db
+    .query("quizAnswers")
+    .withIndex("by_round", (q) => q.eq("roundId", round._id))
+    .collect();
+  const earnedTokensByPlayer = new Map<Id<"playerEntries">, number>();
+  for (const answer of roundAnswers) {
+    earnedTokensByPlayer.set(
+      answer.playerEntryId,
+      (earnedTokensByPlayer.get(answer.playerEntryId) ?? 0) +
+        answer.awardedTokens,
+    );
+  }
+
+  const participants = await getRoundParticipants(ctx, round._id);
+  for (const participant of participants) {
+    const earnedTokens =
+      earnedTokensByPlayer.get(participant.playerEntryId) ?? 0;
+    await ctx.db.patch(participant._id, {
+      status:
+        participant.status === "removed_disconnected"
+          ? participant.status
+          : earnedTokens > 0
+            ? "quiz_complete"
+            : "action_ready",
+      completedQuizAt: participant.completedQuizAt ?? now,
     });
-    await ctx.db.patch(session._id, {
-      activeRoundId: null,
-      participationWindowStatus: "idle",
-      updatedAt: now,
-      status: "in_progress",
-    });
-    return;
+  }
+
+  const encounterId = session.activeEncounterId ?? null;
+  if (encounterId) {
+    const combatants = await ctx.db
+      .query("combatantStates")
+      .withIndex("by_encounter", (q) => q.eq("encounterId", encounterId))
+      .collect();
+
+    for (const combatant of combatants) {
+      if (combatant.combatantType !== "player" || !combatant.playerEntryId) {
+        continue;
+      }
+
+      const earnedTokens =
+        earnedTokensByPlayer.get(combatant.playerEntryId) ?? 0;
+      await ctx.db.patch(combatant._id, {
+        currentActionPoints: earnedTokens,
+        actionPointsPerRound: earnedTokens,
+        pendingEffectIds: [],
+        lastUpdatedAt: now,
+      });
+    }
   }
 
   await ctx.db.patch(round._id, {
     questionsCompleted: nextCompleted,
+    phase: "action_selection",
+  });
+  await ctx.db.patch(session._id, {
+    participationWindowStatus: "locked",
+    gamePhase: "action_selection",
+    updatedAt: now,
+    status: "in_progress",
+  });
+}
+
+export async function startRoundForSession(
+  ctx: MutationCtx,
+  session: Doc<"gameSessions">,
+  config: {
+    allowedCategories: string[];
+    allowedComplexities: string[];
+    questionTarget: number;
+  },
+) {
+  const validationError = validateRoundConfig(
+    config.questionTarget,
+    config.allowedCategories,
+    config.allowedComplexities,
+  );
+  if (validationError) {
+    createJoinError(JOIN_ERROR_CODES.invalidRoundConfig, validationError);
+  }
+
+  if (session.activeRoundId) {
+    createJoinError(
+      JOIN_ERROR_CODES.invalidRoundConfig,
+      "A round is already active for this session.",
+    );
+  }
+
+  await ensureQuestionBankLoaded(ctx);
+
+  const roundNumber = session.currentRoundNumber + 1;
+  const eligiblePlayers = await getJoinedPlayers(ctx, session._id, roundNumber);
+  const questions = await getReadyQuestionsForRules(
+    ctx,
+    config.allowedCategories,
+    config.allowedComplexities,
+  );
+  const priorAssignments = await getPriorAssignments(ctx, session._id);
+
+  if (
+    !canSatisfyRoundForPlayers(
+      eligiblePlayers,
+      questions,
+      priorAssignments,
+      config.questionTarget,
+    )
+  ) {
+    createJoinError(
+      JOIN_ERROR_CODES.insufficientQuestions,
+      "Not enough unique questions are available for every eligible player in this round.",
+    );
+  }
+
+  const now = Date.now();
+  const roundId = await ctx.db.insert("gameRounds", {
+    sessionId: session._id,
+    roundNumber,
+    status: "active",
+    questionTarget: config.questionTarget,
+    questionsCompleted: 0,
+    allowedCategories: config.allowedCategories,
+    allowedComplexities: config.allowedComplexities,
+    exchangeLimit: chooseExchangeLimit(),
+    exchangesResolved: 0,
+    phase: "quiz",
+    createdByHostAt: now,
+    startedAt: now,
+    completedAt: null,
   });
 
-  await createBatchAssignments(
-    ctx,
-    session._id,
-    {
-      ...round,
-      questionsCompleted: nextCompleted,
-    },
-    nextCompleted + 1,
-  );
+  await createRoundParticipants(ctx, session._id, roundId, roundNumber);
+
+  await ctx.db.patch(session._id, {
+    status: "in_progress",
+    currentRoundNumber: roundNumber,
+    activeRoundId: roundId,
+    participationWindowStatus: "locked",
+    gamePhase: "quiz",
+    updatedAt: now,
+  });
+
+  const round = await ctx.db.get(roundId);
+  if (!round) {
+    createJoinError(
+      JOIN_ERROR_CODES.noActiveRound,
+      "The quiz round could not be loaded after it started.",
+    );
+  }
+
+  await createRoundAssignments(ctx, session._id, round);
+
+  return {
+    roundId,
+    roundNumber,
+  };
 }
 
 export const startRound = mutation({
@@ -210,15 +484,6 @@ export const startRound = mutation({
     allowedComplexities: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const validationError = validateRoundConfig(
-      args.questionTarget,
-      args.allowedCategories,
-      args.allowedComplexities,
-    );
-    if (validationError) {
-      createJoinError(JOIN_ERROR_CODES.invalidRoundConfig, validationError);
-    }
-
     const session = await ctx.db.get(args.sessionId);
     if (!session || session.status === "completed") {
       createJoinError(
@@ -227,78 +492,11 @@ export const startRound = mutation({
       );
     }
 
-    if (session.activeRoundId) {
-      createJoinError(
-        JOIN_ERROR_CODES.invalidRoundConfig,
-        "A round is already active for this session.",
-      );
-    }
-
-    await ensureQuestionBankLoaded(ctx);
-
-    const roundNumber = session.currentRoundNumber + 1;
-    const eligiblePlayers = await getJoinedPlayers(
-      ctx,
-      session._id,
-      roundNumber,
-    );
-    const questions = await getReadyQuestionsForRules(
-      ctx,
-      args.allowedCategories,
-      args.allowedComplexities,
-    );
-    const priorAssignments = await getPriorAssignments(ctx, session._id);
-
-    if (
-      !canSatisfyRoundForPlayers(
-        eligiblePlayers,
-        questions,
-        priorAssignments,
-        args.questionTarget,
-      )
-    ) {
-      createJoinError(
-        JOIN_ERROR_CODES.insufficientQuestions,
-        "Not enough unique questions are available for every eligible player in this round.",
-      );
-    }
-
-    const now = Date.now();
-    const roundId = await ctx.db.insert("gameRounds", {
-      sessionId: session._id,
-      roundNumber,
-      status: "active",
+    return await startRoundForSession(ctx, session, {
       questionTarget: args.questionTarget,
-      questionsCompleted: 0,
       allowedCategories: args.allowedCategories,
       allowedComplexities: args.allowedComplexities,
-      createdByHostAt: now,
-      startedAt: now,
-      completedAt: null,
     });
-
-    await ctx.db.patch(session._id, {
-      status: "in_progress",
-      currentRoundNumber: roundNumber,
-      activeRoundId: roundId,
-      participationWindowStatus: "open",
-      updatedAt: now,
-    });
-
-    const round = await ctx.db.get(roundId);
-    if (!round) {
-      createJoinError(
-        JOIN_ERROR_CODES.noActiveRound,
-        "The quiz round could not be loaded after it started.",
-      );
-    }
-
-    await createBatchAssignments(ctx, session._id, round, 1);
-
-    return {
-      roundId,
-      roundNumber,
-    };
   },
 });
 
@@ -315,7 +513,7 @@ export const getPlayerQuizState = query({
       )
       .unique();
 
-    if (!session || session.status === "completed") {
+    if (!session) {
       return null;
     }
 
@@ -335,21 +533,32 @@ export const getPlayerQuizState = query({
           status: session.status,
           battleJoinStatus: getSessionBattleJoinStatus(session),
           activeEncounterId: session.activeEncounterId ?? null,
+          gamePhase: session.gamePhase ?? "lobby",
         },
         player: null,
         playerEntryId: null,
         activeRound: null,
+        assignments: [],
         assignment: null,
         latestResult: null,
+        roundParticipant: null,
         combatant: null,
         partySummary: null,
         availableSkills: [],
+        availableTargets: [],
         battleStatus: session.activeEncounterId
           ? "active_battle"
           : "pre_battle",
         joinBlockReason: session.activeEncounterId
           ? "battle_join_blocked"
           : null,
+        results:
+          session.completedAt !== null
+            ? {
+                completedAt: session.completedAt,
+                completionReason: session.completionReason ?? "host_ended",
+              }
+            : null,
       };
     }
 
@@ -359,6 +568,15 @@ export const getPlayerQuizState = query({
     const activeEncounter = session.activeEncounterId
       ? await ctx.db.get(session.activeEncounterId)
       : null;
+    const roundParticipant =
+      activeRound && player
+        ? await ctx.db
+            .query("roundParticipants")
+            .withIndex("by_round_and_player", (q) =>
+              q.eq("roundId", activeRound._id).eq("playerEntryId", player._id),
+            )
+            .unique()
+        : null;
     const combatant = activeEncounter
       ? await ctx.db
           .query("combatantStates")
@@ -388,11 +606,24 @@ export const getPlayerQuizState = query({
         assignment.status === "presented" &&
         (!activeRound || assignment.roundId === activeRound._id),
     );
+    const activeAssignments = playerAssignments
+      .filter(
+        (assignment) =>
+          assignment.status === "presented" &&
+          (!activeRound || assignment.roundId === activeRound._id),
+      )
+      .sort((left, right) => left.batchNumber - right.batchNumber);
 
     const latestAssignment = playerAssignments.find(
       (assignment) => assignment.status === "scored",
     );
 
+    const activeAssignmentQuestions = await Promise.all(
+      activeAssignments.map(async (assignment) => ({
+        assignment,
+        question: await ctx.db.get(assignment.quizQuestionId),
+      })),
+    );
     const assignmentQuestion = activeAssignment
       ? await ctx.db.get(activeAssignment.quizQuestionId)
       : null;
@@ -405,6 +636,30 @@ export const getPlayerQuizState = query({
           )
           .unique()
       : null;
+    const results =
+      session.completedAt !== null
+        ? {
+            completedAt: session.completedAt,
+            completionReason: session.completionReason ?? "host_ended",
+          }
+        : null;
+    const availableTargets = activeEncounter
+      ? encounterCombatants
+          .filter((currentCombatant) => currentCombatant.state === "active")
+          .map((currentCombatant) => ({
+            combatantType: currentCombatant.combatantType,
+            displayName: currentCombatant.displayName,
+            id: currentCombatant._id,
+          }))
+      : [];
+    const battleStatus = getBattleStatus({
+      activeAssignment,
+      activeEncounter,
+      activeRound,
+      gamePhase: session.gamePhase ?? null,
+      results: Boolean(results),
+      roundParticipantStatus: roundParticipant?.status ?? null,
+    });
 
     return {
       session: {
@@ -414,6 +669,7 @@ export const getPlayerQuizState = query({
         status: session.status,
         battleJoinStatus: getSessionBattleJoinStatus(session),
         activeEncounterId: session.activeEncounterId ?? null,
+        gamePhase: session.gamePhase ?? "lobby",
       },
       player: {
         displayName: player.displayName,
@@ -424,6 +680,7 @@ export const getPlayerQuizState = query({
       playerEntryId: player._id,
       activeRound: activeRound
         ? {
+            id: activeRound._id,
             roundNumber: activeRound.roundNumber,
             status: activeRound.status,
             questionTarget: activeRound.questionTarget,
@@ -432,6 +689,9 @@ export const getPlayerQuizState = query({
               activeRound.questionTarget - activeRound.questionsCompleted,
             allowedCategories: activeRound.allowedCategories,
             allowedComplexities: activeRound.allowedComplexities,
+            exchangeLimit: activeRound.exchangeLimit ?? null,
+            exchangesResolved: activeRound.exchangesResolved ?? 0,
+            phase: activeRound.phase ?? "quiz",
           }
         : null,
       assignment:
@@ -445,6 +705,22 @@ export const getPlayerQuizState = query({
               questionNumber: activeAssignment.batchNumber,
             }
           : null,
+      assignments: activeAssignmentQuestions
+        .filter(
+          (
+            entry,
+          ): entry is {
+            assignment: Doc<"quizAssignments">;
+            question: Doc<"quizQuestions">;
+          } => entry.question !== null,
+        )
+        .map((entry) => ({
+          assignmentId: entry.assignment._id,
+          choices: entry.question.choices,
+          prompt: entry.question.prompt,
+          questionNumber: entry.assignment.batchNumber,
+          roundNumber: activeRound?.roundNumber ?? session.currentRoundNumber,
+        })),
       latestResult:
         latestAssignment && latestAnswer
           ? {
@@ -454,6 +730,12 @@ export const getPlayerQuizState = query({
               submittedChoiceId: latestAnswer.submittedChoiceId,
             }
           : null,
+      roundParticipant: roundParticipant
+        ? {
+            canReturnNextRound: roundParticipant.canReturnNextRound,
+            status: roundParticipant.status,
+          }
+        : null,
       combatant: combatant
         ? {
             encounterId: combatant.encounterId,
@@ -495,20 +777,22 @@ export const getPlayerQuizState = query({
             .filter(isSkillDefinition)
             .map((skill: Doc<"skillDefinitions">) => ({
               actionPointCost: skill.actionPointCost,
-              available: combatant.currentActionPoints >= skill.actionPointCost,
+              available:
+                combatant.currentActionPoints >= skill.actionPointCost &&
+                roundParticipant?.status !== "action_ready",
               category: skill.category,
               id: skill._id,
               name: skill.name,
+              targetScope: skill.targetScope,
             }))
         : [],
-      battleStatus: activeEncounter
-        ? activeEncounter.status === "active"
-          ? activeAssignment
-            ? "active_quiz"
-            : "active_battle"
-          : activeEncounter.status
-        : "pre_battle",
-      joinBlockReason: null,
+      availableTargets,
+      battleStatus,
+      joinBlockReason:
+        roundParticipant?.status === "removed_disconnected"
+          ? "battle_join_blocked"
+          : null,
+      results,
     };
   },
 });

@@ -38,4 +38,36 @@ describe("HostBattleArena", () => {
     expect(screen.getByText("Obsidian Hydra")).toBeInTheDocument();
     expect(screen.getByText("Ari")).toBeInTheDocument();
   });
+
+  it("shows active and knocked-out hero counts for the host projector", () => {
+    renderApp(
+      <ActiveThemeProvider>
+        <HostBattleArena
+          battleRoundNumber={3}
+          bossLineup={[bossCombatantFixture]}
+          partyCombatants={[
+            {
+              currentActionPoints: 0,
+              currentHealth: 0,
+              displayName: "Jules",
+              fallbackSpriteKey: "player-jules",
+              id: "combatant_player_2",
+              maxActionPoints: 3,
+              maxHealth: 10,
+              state: "knocked_out",
+            },
+          ]}
+          partySummary={{
+            ...battlePartySummaryFixture,
+            activePlayers: 1,
+            knockedOutPlayers: 1,
+          }}
+        />
+      </ActiveThemeProvider>,
+    );
+
+    expect(screen.getByText("1 active heroes")).toBeInTheDocument();
+    expect(screen.getByText("1 knocked out")).toBeInTheDocument();
+    expect(screen.getByText("Jules")).toBeInTheDocument();
+  });
 });
