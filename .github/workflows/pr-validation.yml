@@ -35,6 +35,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate route tree
+        run: pnpm generate:routes
+
+      - name: Prepare Convex generated artifacts
+        run: bash ./devops/scripts/prepare-convex-ci.sh
+
       - name: Run PR fast validation
         run: pnpm validate:pr:fast
 
