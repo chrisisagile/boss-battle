@@ -22,6 +22,7 @@ src/routeTree.gen.ts
 *.local
 .env
 .env.*
+.env.local
 
 # Wrangler and Aspire local state
 .wrangler

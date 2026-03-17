@@ -1,0 +1,11 @@
+{
+  "defaultBaseBranch": "main",
+  "protectedBaseBranches": ["main"],
+  "defaultReviewers": [],
+  "notes": [
+    "Reviewer selection can come from pathRules, reviewer selectionSignals, and explicit domain overlap from the diff.",
+    "Pass the PR author's handle to reviewer planning so the author is never requested as a reviewer."
+  ],
+  "pathRules": [],
+  "reviewers": []
+}
