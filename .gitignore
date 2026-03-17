@@ -44,8 +44,6 @@ TestResults/
 # Local tooling internals
 .husky/_/
 --help/
-.agent/
-.codex/skills/
 
 # Repo-local scratch files
 count.txt
