@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { BattlePlayerProfileCard } from "@/components/ui/8bit/battle-player-profile-card";
 import { Button } from "@/components/ui/8bit/button";
+import type { BattleDialogueFeedData } from "./battle-dialogue-feed";
+import { BattleDialogueFeed } from "./battle-dialogue-feed";
 
 interface AvailableSkill {
   actionPointCost: number;
@@ -20,6 +22,7 @@ interface AvailableTarget {
 interface PlayerBattleProfileProps {
   availableSkills: AvailableSkill[];
   availableTargets?: AvailableTarget[];
+  battleActivity?: BattleDialogueFeedData | null;
   currentActionPoints: number;
   currentHealth: number;
   errorMessage?: string | null;
@@ -34,6 +37,7 @@ interface PlayerBattleProfileProps {
 export function PlayerBattleProfile({
   availableSkills,
   availableTargets = [],
+  battleActivity = null,
   currentActionPoints,
   currentHealth,
   errorMessage = null,
@@ -82,6 +86,11 @@ export function PlayerBattleProfile({
         maxHealth={maxHealth}
         name={name}
         status={knockedOut ? "Knocked Out" : "Active"}
+      />
+
+      <BattleDialogueFeed
+        currentEvent={battleActivity?.currentEvent ?? null}
+        recentEvents={battleActivity?.recentEvents ?? []}
       />
 
       <div className="border-4 border-black/80 bg-[rgba(19,13,9,0.95)] p-5 text-stone-50 shadow-[8px_8px_0_0_rgba(18,12,8,0.45)]">

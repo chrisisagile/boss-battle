@@ -4,6 +4,7 @@ import { renderApp, screen } from "@/test/render";
 import {
   battlePartySummaryFixture,
   bossCombatantFixture,
+  hostOverviewFixture,
   playerCombatantFixture,
 } from "@/test/session-fixtures";
 import { HostBattleArena } from "./host-battle-arena";
@@ -37,6 +38,41 @@ describe("HostBattleArena", () => {
     expect(screen.getByText("Party Health")).toBeInTheDocument();
     expect(screen.getByText("Obsidian Hydra")).toBeInTheDocument();
     expect(screen.getByText("Ari")).toBeInTheDocument();
+  });
+
+  it("renders the current action and recent battle history", () => {
+    renderApp(
+      <ActiveThemeProvider>
+        <HostBattleArena
+          battleActivity={hostOverviewFixture.battleActivity}
+          battleRoundNumber={2}
+          bossLineup={[bossCombatantFixture]}
+          partyCombatants={[
+            {
+              currentActionPoints: playerCombatantFixture.currentActionPoints,
+              currentHealth: playerCombatantFixture.currentHealth,
+              displayName: playerCombatantFixture.displayName,
+              fallbackSpriteKey: playerCombatantFixture.fallbackSpriteKey,
+              id: playerCombatantFixture.id,
+              maxActionPoints: 3,
+              maxHealth: playerCombatantFixture.maxHealth,
+              state: playerCombatantFixture.state,
+            },
+          ]}
+          partySummary={battlePartySummaryFixture}
+        />
+      </ActiveThemeProvider>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Battle Dialogue" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mina uses Rally Heal on Ari/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Obsidian Hydra uses Boss Strike on Ari/i),
+    ).toBeInTheDocument();
   });
 
   it("shows active and knocked-out hero counts for the host projector", () => {

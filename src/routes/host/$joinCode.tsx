@@ -368,6 +368,7 @@ export function HostSessionPage({ joinCode }: { joinCode: string }) {
 
       {overview.encounter && overview.partySummary ? (
         <HostBattleArena
+          battleActivity={overview.battleActivity}
           battleRoundNumber={overview.encounter.battleRoundNumber}
           bossLineup={overview.bossLineup}
           partyCombatants={overview.partyCombatants}

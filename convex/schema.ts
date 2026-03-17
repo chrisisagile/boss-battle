@@ -308,6 +308,30 @@ export default defineSchema({
         submittedAt: v.number(),
       }),
     ),
+    activityEvents: v.array(
+      v.object({
+        eventNumber: v.number(),
+        actorCombatantId: v.id("combatantStates"),
+        actorName: v.string(),
+        actorType: v.union(v.literal("player"), v.literal("boss")),
+        targetCombatantId: v.union(v.id("combatantStates"), v.null()),
+        targetName: v.union(v.string(), v.null()),
+        actionLabel: v.string(),
+        outcomeType: v.union(
+          v.literal("damage"),
+          v.literal("heal"),
+          v.literal("guard"),
+          v.literal("miss"),
+          v.literal("skipped"),
+          v.literal("knockout"),
+          v.literal("status"),
+        ),
+        magnitude: v.number(),
+        resultingTargetHealth: v.union(v.number(), v.null()),
+        resultingTargetState: v.union(v.string(), v.null()),
+        summaryText: v.string(),
+      }),
+    ),
     resolvedAt: v.union(v.number(), v.null()),
   })
     .index("by_round", ["roundId"])

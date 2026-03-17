@@ -35,6 +35,40 @@ interface ConvexJoinErrorData {
   message: string;
 }
 
+export type BattleActivityActorType = "player" | "boss";
+
+export type BattleActivityOutcomeType =
+  | "damage"
+  | "heal"
+  | "guard"
+  | "miss"
+  | "skipped"
+  | "knockout"
+  | "status";
+
+export interface BattleActivityEvent {
+  actionLabel: string;
+  actorCombatantId: string;
+  actorName: string;
+  actorType: BattleActivityActorType;
+  eventNumber: number;
+  magnitude?: number | null;
+  outcomeType: BattleActivityOutcomeType;
+  resultingTargetHealth?: number | null;
+  resultingTargetState?: string | null;
+  summaryText?: string | null;
+  targetCombatantId?: string | null;
+  targetName?: string | null;
+}
+
+export interface BattleActivitySummary {
+  currentEvent?: BattleActivityEvent | null;
+  exchangeId: string;
+  exchangeNumber: number;
+  recentEvents: readonly BattleActivityEvent[];
+  status: "pending" | "resolving" | "resolved";
+}
+
 interface HostSessionLoadLogContext {
   joinCode: string;
   reason: "unavailable";
@@ -76,6 +110,13 @@ interface EncounterTransitionLogContext {
   joinCode: string;
   nextState: string;
   previousState: string;
+  role: "host" | "player";
+}
+
+interface BattleFeedIssueLogContext {
+  exchangeId?: string | null;
+  joinCode: string;
+  message: string;
   role: "host" | "player";
 }
 
@@ -238,4 +279,14 @@ export function logEncounterTransition(context: EncounterTransitionLogContext) {
     action: "battle_encounter_transition",
     ...context,
   });
+}
+
+export function logBattleFeedIssue(context: BattleFeedIssueLogContext) {
+  console.warn(
+    "Battle activity feed is unavailable for the current exchange.",
+    {
+      action: "battle_feed_issue",
+      ...context,
+    },
+  );
 }

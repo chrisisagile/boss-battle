@@ -3,6 +3,7 @@ import { quizQuestionSeeds } from "@/data/quiz-questions";
 import { renderApp, screen } from "@/test/render";
 import {
   activeSessionFixture,
+  hostOverviewFixture,
   inProgressSessionFixture,
 } from "@/test/session-fixtures";
 import { JoinByCodePage } from "./$joinCode";
@@ -308,6 +309,7 @@ describe("JoinByCodePage", () => {
         displayName: "Ari",
         fallbackSpriteKey: "player-ari",
         id: "combatant_player_1",
+        maxActionPoints: 3,
         maxHealth: 10,
         nextQuizAdvantage: null,
         spriteRef: null,
@@ -354,6 +356,81 @@ describe("JoinByCodePage", () => {
     });
   });
 
+  it("renders the battle dialogue feed during battle resolution without resubmitting actions", async () => {
+    playerQuizStateMock.mockReturnValue({
+      session: inProgressSessionFixture,
+      player: {
+        displayName: "Ari",
+        eligibleFromRoundNumber: 1,
+        nextQuizAdvantage: "none",
+        tokenBalance: 4,
+      },
+      playerEntryId: "player_1",
+      activeRound: {
+        id: "round_3",
+        roundNumber: 3,
+        status: "active",
+        questionTarget: 2,
+        questionsCompleted: 2,
+        remainingQuestions: 0,
+        allowedCategories: ["history"],
+        allowedComplexities: ["easy"],
+        phase: "battle_resolution",
+      },
+      assignments: [],
+      assignment: null,
+      latestResult: null,
+      combatant: {
+        encounterId: "encounter_1",
+        currentActionPoints: 2,
+        currentHealth: 7,
+        displayName: "Ari",
+        fallbackSpriteKey: "player-ari",
+        id: "combatant_player_1",
+        maxActionPoints: 3,
+        maxHealth: 10,
+        nextQuizAdvantage: null,
+        spriteRef: null,
+        state: "active",
+      },
+      partySummary: null,
+      availableSkills: [
+        {
+          actionPointCost: 1,
+          available: true,
+          category: "attack",
+          id: "skill_attack",
+          name: "Slash",
+          targetScope: "enemy",
+        },
+      ],
+      availableTargets: [
+        {
+          combatantType: "boss",
+          displayName: "Obsidian Hydra",
+          id: "boss_1",
+        },
+      ],
+      battleActivity: hostOverviewFixture.battleActivity,
+      battleStatus: "battle_resolution",
+      joinBlockReason: null,
+      results: null,
+    });
+
+    const { user } = renderApp(<JoinByCodePage joinCode="BATTLE" />);
+
+    expect(
+      screen.getByRole("heading", { name: "Battle Dialogue" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Obsidian Hydra uses Boss Strike on Ari/i),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Use" }));
+
+    expect(submitBattleActionMock).not.toHaveBeenCalled();
+  });
+
   it("shows removed-from-round messaging and promises next-round return", () => {
     playerQuizStateMock.mockReturnValue({
       session: inProgressSessionFixture,
@@ -385,6 +462,7 @@ describe("JoinByCodePage", () => {
         displayName: "Ari",
         fallbackSpriteKey: "player-ari",
         id: "combatant_player_1",
+        maxActionPoints: 3,
         maxHealth: 10,
         nextQuizAdvantage: null,
         spriteRef: null,

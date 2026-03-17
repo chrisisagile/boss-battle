@@ -15,6 +15,7 @@
     "format:check": "biome format .",
     "preview": "vite preview",
     "generate:routes": "node ./scripts/generate-route-tree.mjs",
+    "deploy:public": "bash ./scripts/deploy-public.sh",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:e2e": "dotnet test devops/tests/BossBattle.AppHost.Tests/BossBattle.AppHost.Tests.csproj",

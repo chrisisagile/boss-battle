@@ -139,6 +139,7 @@ public sealed class AppHostSmokeTests
             roundNumber: 1);
 
         await ExpectMainTextAsync(harness.HostPage, "Battle Arena");
+        await ExpectHeadingAsync(harness.HostPage, "Battle Dialogue");
         await ExpectHeadingAsync(harness.HostPage, "Round 2");
         await harness.HostPage.GetByText("Joined Players (2)", new PageGetByTextOptions { Exact = true }).WaitForAsync();
         await ExpectHeadingAsync(harness.PlayerOnePage, "Round 2 begins now.");
@@ -178,8 +179,8 @@ public sealed class AppHostSmokeTests
         await harness.HostPage
             .GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Continue Battle", Exact = true })
             .WaitForAsync();
-        await harness.PlayerOnePage.GetByText("Waiting for the room...", new PageGetByTextOptions { Exact = true }).WaitForAsync();
-        await harness.PlayerTwoPage.GetByText("Waiting for the room...", new PageGetByTextOptions { Exact = true }).WaitForAsync();
+        await ExpectHeadingAsync(harness.PlayerOnePage, "Battle Dialogue");
+        await ExpectHeadingAsync(harness.PlayerTwoPage, "Battle Dialogue");
     }
 
     private static async Task<Uri> WaitForHomepageAsync(HttpClient httpClient, CancellationToken cancellationToken)
@@ -295,28 +296,15 @@ public sealed class AppHostSmokeTests
             .Where((choice) => normalizedWrongAnswers.Contains(choice))
             .Distinct()
             .ToArray();
-        var clickedAnswerCount = await page.EvaluateAsync<int>(
-            @"(knownWrongAnswers) => {
-                const normalize = (value) => value.replace(/\s+/g, ' ').trim();
-                const expected = new Set(knownWrongAnswers.map((answer) => normalize(answer)));
-                let count = 0;
-
-                for (const label of document.querySelectorAll('label')) {
-                    const labelText = normalize(label.textContent ?? '');
-                    if (!expected.has(labelText)) {
-                        continue;
-                    }
-
-                    label.click();
-                    count += 1;
-                }
-
-                return count;
-            }",
-            expectedWrongAnswers);
         Assert.True(
-            clickedAnswerCount == 2,
-            $"Expected two deterministic wrong answers but found {clickedAnswerCount}. Visible labels: {string.Join(" | ", visibleAnswerChoices)}");
+            expectedWrongAnswers.Length == 2,
+            $"Expected two deterministic wrong answers but found {expectedWrongAnswers.Length}. Visible labels: {string.Join(" | ", visibleAnswerChoices)}");
+        foreach (var wrongAnswer in expectedWrongAnswers)
+        {
+            await page
+                .GetByLabel(wrongAnswer, new PageGetByLabelOptions { Exact = true })
+                .CheckAsync();
+        }
 
         await page
             .GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Lock Answers", Exact = true })
@@ -435,8 +423,8 @@ public sealed class AppHostSmokeTests
         await EnterRoundAndAnswerSheetAsync(playerOnePage, roundNumber);
         await EnterRoundAndAnswerSheetAsync(playerTwoPage, roundNumber);
 
-        await playerOnePage.GetByText("Waiting for the room...", new PageGetByTextOptions { Exact = true }).WaitForAsync();
-        await playerTwoPage.GetByText("Waiting for the room...", new PageGetByTextOptions { Exact = true }).WaitForAsync();
+        await ExpectHeadingAsync(playerOnePage, "Battle Dialogue");
+        await ExpectHeadingAsync(playerTwoPage, "Battle Dialogue");
         await hostPage
             .GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Continue Battle", Exact = true })
             .WaitForAsync();

@@ -2,10 +2,16 @@ import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import type { BattleActivityFeedItem } from "./lib/battleFeed";
 import {
   applyStudyAdvantage,
   buildDefaultBossCatalog,
   chooseFallbackSpriteKey,
+  STANDARD_ATTACK_DAMAGE,
+  STANDARD_BOSS_DAMAGE_MULTIPLIER,
+  STANDARD_GUARD_RECOVERY,
+  STANDARD_HEAL_AMOUNT,
+  STANDARD_PLAYER_MAX_HEALTH,
   scaleBossCombatValues,
 } from "./lib/battleState";
 import type { BattleSkillCategory } from "./lib/battleValidation";
@@ -252,6 +258,7 @@ async function getOrCreateExchange(
     bossActionSummary: [],
     playerTurnOrder: [],
     playerActions: [],
+    activityEvents: [],
     resolvedAt: null,
   });
 
@@ -518,7 +525,7 @@ export const startEncounter = mutation({
           .withIndex("by_session", (q) => q.eq("sessionId", session._id))
           .collect()
       ).length + 1;
-    const partyMaxHealth = players.length * 10;
+    const partyMaxHealth = players.length * STANDARD_PLAYER_MAX_HEALTH;
     const encounterId = await ctx.db.insert("battleEncounters", {
       sessionId: session._id,
       status: "active",
@@ -546,8 +553,8 @@ export const startEncounter = mutation({
         bossDefinitionId: null,
         displayName: player.displayName,
         lineupSlot: index + 1,
-        currentHealth: 10,
-        maxHealth: 10,
+        currentHealth: STANDARD_PLAYER_MAX_HEALTH,
+        maxHealth: STANDARD_PLAYER_MAX_HEALTH,
         currentActionPoints: 0,
         actionPointsPerRound: 0,
         state: "active",
@@ -884,6 +891,38 @@ async function resolveBattleExchangeInternal(
     combatantsByPlayerEntry,
   );
   const now = Date.now();
+  const activityEvents: BattleActivityFeedItem[] = [];
+  let nextEventNumber = 1;
+
+  function recordActivityEvent(input: {
+    actionLabel: string;
+    actorCombatantId: Id<"combatantStates">;
+    actorName: string;
+    actorType: "boss" | "player";
+    magnitude?: number;
+    outcomeType: BattleActivityFeedItem["outcomeType"];
+    resultingTargetHealth?: number | null;
+    resultingTargetState?: string | null;
+    summaryText: string;
+    targetCombatantId?: Id<"combatantStates"> | null;
+    targetName?: string | null;
+  }) {
+    activityEvents.push({
+      actionLabel: input.actionLabel,
+      actorCombatantId: input.actorCombatantId,
+      actorName: input.actorName,
+      actorType: input.actorType,
+      eventNumber: nextEventNumber,
+      magnitude: input.magnitude ?? 0,
+      outcomeType: input.outcomeType,
+      resultingTargetHealth: input.resultingTargetHealth ?? null,
+      resultingTargetState: input.resultingTargetState ?? null,
+      summaryText: input.summaryText,
+      targetCombatantId: input.targetCombatantId ?? null,
+      targetName: input.targetName ?? null,
+    });
+    nextEventNumber += 1;
+  }
 
   await ctx.db.patch(args.round._id, {
     phase: "battle_resolution",
@@ -924,27 +963,71 @@ async function resolveBattleExchangeInternal(
     );
 
     if (!target) {
+      recordActivityEvent({
+        actionLabel: "Boss Strike",
+        actorCombatantId: boss._id,
+        actorName: boss.displayName,
+        actorType: "boss",
+        outcomeType: "skipped",
+        summaryText: `${boss.displayName} has no active target and cannot act.`,
+      });
       continue;
     }
 
-    const damage = Math.max(1, boss.actionPointsPerRound * 2);
-    const nextHealth = Math.max(
-      0,
-      (playerHealth.get(target._id) ?? target.currentHealth) - damage,
+    const damage = Math.max(
+      1,
+      boss.actionPointsPerRound * STANDARD_BOSS_DAMAGE_MULTIPLIER,
     );
+    const previousHealth = playerHealth.get(target._id) ?? target.currentHealth;
+    const nextHealth = Math.max(0, previousHealth - damage);
     playerHealth.set(target._id, nextHealth);
-    partyHealth = Math.max(0, partyHealth - damage);
+    partyHealth = Math.max(0, partyHealth - (previousHealth - nextHealth));
     bossActionSummary.push({
       actorId: boss._id,
       damage,
       skillName: "Boss Strike",
       targetId: target._id,
     });
+    recordActivityEvent({
+      actionLabel: "Boss Strike",
+      actorCombatantId: boss._id,
+      actorName: boss.displayName,
+      actorType: "boss",
+      magnitude: damage,
+      outcomeType: nextHealth === 0 ? "knockout" : "damage",
+      resultingTargetHealth: nextHealth,
+      resultingTargetState: nextHealth === 0 ? "knocked_out" : target.state,
+      summaryText:
+        nextHealth === 0
+          ? `${boss.displayName} knocks out ${target.displayName} with Boss Strike for ${damage}.`
+          : `${boss.displayName} uses Boss Strike on ${target.displayName} for ${damage} damage.`,
+      targetCombatantId: target._id,
+      targetName: target.displayName,
+    });
   }
 
   for (const action of playerActions) {
     const actor = combatantsByPlayerEntry.get(action.playerEntryId);
     if (!actor || (playerHealth.get(actor._id) ?? actor.currentHealth) <= 0) {
+      if (actor) {
+        const currentActorHealth =
+          playerHealth.get(actor._id) ?? actor.currentHealth;
+        recordActivityEvent({
+          actionLabel: "Queued Action",
+          actorCombatantId: actor._id,
+          actorName: actor.displayName,
+          actorType: "player",
+          outcomeType: "skipped",
+          resultingTargetHealth: currentActorHealth,
+          resultingTargetState:
+            currentActorHealth <= 0 ? "knocked_out" : actor.state,
+          summaryText: `${actor.displayName}'s action is skipped because they can no longer act.`,
+          targetCombatantId: action.targetId ?? null,
+          targetName: action.targetId
+            ? (combatantsById.get(action.targetId)?.displayName ?? null)
+            : null,
+        });
+      }
       continue;
     }
 
@@ -967,13 +1050,60 @@ async function resolveBattleExchangeInternal(
         null;
       if (targetId) {
         const target = combatantsById.get(targetId);
-        if (target && isBossCombatant(target)) {
+        if (
+          target &&
+          isBossCombatant(target) &&
+          (bossHealth.get(targetId) ?? target.currentHealth) > 0
+        ) {
           const nextHealth = Math.max(
             0,
-            (bossHealth.get(targetId) ?? target.currentHealth) - 4,
+            (bossHealth.get(targetId) ?? target.currentHealth) -
+              STANDARD_ATTACK_DAMAGE,
           );
           bossHealth.set(targetId, nextHealth);
+          recordActivityEvent({
+            actionLabel: skill.name,
+            actorCombatantId: actor._id,
+            actorName: actor.displayName,
+            actorType: "player",
+            magnitude: STANDARD_ATTACK_DAMAGE,
+            outcomeType: nextHealth === 0 ? "knockout" : "damage",
+            resultingTargetHealth: nextHealth,
+            resultingTargetState: nextHealth === 0 ? "defeated" : target.state,
+            summaryText:
+              nextHealth === 0
+                ? `${actor.displayName} knocks out ${target.displayName} with ${skill.name}.`
+                : `${actor.displayName} uses ${skill.name} on ${target.displayName} for ${STANDARD_ATTACK_DAMAGE} damage.`,
+            targetCombatantId: target._id,
+            targetName: target.displayName,
+          });
+        } else {
+          const currentTargetHealth = target
+            ? (bossHealth.get(targetId) ?? target.currentHealth)
+            : null;
+          recordActivityEvent({
+            actionLabel: skill.name,
+            actorCombatantId: actor._id,
+            actorName: actor.displayName,
+            actorType: "player",
+            outcomeType: "miss",
+            resultingTargetHealth: currentTargetHealth,
+            resultingTargetState:
+              currentTargetHealth === 0 ? "defeated" : (target?.state ?? null),
+            summaryText: `${actor.displayName}'s ${skill.name} misses because the target is no longer active.`,
+            targetCombatantId: targetId,
+            targetName: target?.displayName ?? null,
+          });
         }
+      } else {
+        recordActivityEvent({
+          actionLabel: skill.name,
+          actorCombatantId: actor._id,
+          actorName: actor.displayName,
+          actorType: "player",
+          outcomeType: "skipped",
+          summaryText: `${actor.displayName} cannot use ${skill.name} because no valid target remains.`,
+        });
       }
     }
 
@@ -981,22 +1111,63 @@ async function resolveBattleExchangeInternal(
       const targetId = action.targetId ?? actor._id;
       const target = combatantsById.get(targetId);
       if (target && isPlayerCombatant(target)) {
+        const previousHealth =
+          playerHealth.get(targetId) ?? target.currentHealth;
         const nextHealth = Math.min(
           target.maxHealth,
-          (playerHealth.get(targetId) ?? target.currentHealth) + 3,
+          previousHealth + STANDARD_HEAL_AMOUNT,
         );
         playerHealth.set(targetId, nextHealth);
-        partyHealth = Math.min(args.encounter.partyMaxHealth, partyHealth + 3);
+        partyHealth = Math.min(
+          args.encounter.partyMaxHealth,
+          partyHealth + (nextHealth - previousHealth),
+        );
+        recordActivityEvent({
+          actionLabel: skill.name,
+          actorCombatantId: actor._id,
+          actorName: actor.displayName,
+          actorType: "player",
+          magnitude: nextHealth - previousHealth,
+          outcomeType: "heal",
+          resultingTargetHealth: nextHealth,
+          resultingTargetState: target.state,
+          summaryText:
+            nextHealth > previousHealth
+              ? `${actor.displayName} uses ${skill.name} on ${target.displayName} for ${nextHealth - previousHealth} health.`
+              : `${actor.displayName} uses ${skill.name}, but ${target.displayName} is already at full health.`,
+          targetCombatantId: target._id,
+          targetName: target.displayName,
+        });
       }
     }
 
     if (skill.category === "defend") {
+      const previousHealth = playerHealth.get(actor._id) ?? actor.currentHealth;
       const nextHealth = Math.min(
         actor.maxHealth,
-        (playerHealth.get(actor._id) ?? actor.currentHealth) + 2,
+        previousHealth + STANDARD_GUARD_RECOVERY,
       );
       playerHealth.set(actor._id, nextHealth);
-      partyHealth = Math.min(args.encounter.partyMaxHealth, partyHealth + 2);
+      partyHealth = Math.min(
+        args.encounter.partyMaxHealth,
+        partyHealth + (nextHealth - previousHealth),
+      );
+      recordActivityEvent({
+        actionLabel: skill.name,
+        actorCombatantId: actor._id,
+        actorName: actor.displayName,
+        actorType: "player",
+        magnitude: nextHealth - previousHealth,
+        outcomeType: "guard",
+        resultingTargetHealth: nextHealth,
+        resultingTargetState: actor.state,
+        summaryText:
+          nextHealth > previousHealth
+            ? `${actor.displayName} uses ${skill.name} and steadies for ${nextHealth - previousHealth} health.`
+            : `${actor.displayName} uses ${skill.name} and braces for the next exchange.`,
+        targetCombatantId: actor._id,
+        targetName: actor.displayName,
+      });
     }
 
     if (skill.category === "study") {
@@ -1010,6 +1181,19 @@ async function resolveBattleExchangeInternal(
           nextQuizAdvantage: nextQuizAdvantage ?? "none",
         });
       }
+      recordActivityEvent({
+        actionLabel: skill.name,
+        actorCombatantId: actor._id,
+        actorName: actor.displayName,
+        actorType: "player",
+        outcomeType: "status",
+        resultingTargetHealth:
+          playerHealth.get(actor._id) ?? actor.currentHealth,
+        resultingTargetState: actor.state,
+        summaryText: `${actor.displayName} uses ${skill.name} and gains an easier question next round.`,
+        targetCombatantId: actor._id,
+        targetName: actor.displayName,
+      });
     }
 
     await ctx.db.patch(actor._id, {
@@ -1058,6 +1242,7 @@ async function resolveBattleExchangeInternal(
     partyCurrentHealth: Math.max(0, partyHealth),
   });
   await ctx.db.patch(exchange._id, {
+    activityEvents,
     bossActionSummary,
     resolvedAt: now,
     status: "resolved",

@@ -3,6 +3,8 @@ import {
   BattleEnemyHealthDisplay,
 } from "@/components/ui/8bit/battle-character-sheet";
 import { BattleHealthBar } from "@/components/ui/8bit/battle-health-bar";
+import type { BattleDialogueFeedData } from "./battle-dialogue-feed";
+import { BattleDialogueFeed } from "./battle-dialogue-feed";
 
 interface PartySummary {
   activePlayers: number;
@@ -35,12 +37,14 @@ interface PartyCombatant {
 
 interface HostBattleArenaProps {
   battleRoundNumber: number;
+  battleActivity?: BattleDialogueFeedData | null;
   bossLineup: BossCombatant[];
   partyCombatants?: PartyCombatant[];
   partySummary: PartySummary;
 }
 
 export function HostBattleArena({
+  battleActivity = null,
   battleRoundNumber,
   bossLineup,
   partyCombatants = [],
@@ -104,6 +108,12 @@ export function HostBattleArena({
           />
         ))}
       </div>
+
+      <BattleDialogueFeed
+        className="mt-8"
+        currentEvent={battleActivity?.currentEvent ?? null}
+        recentEvents={battleActivity?.recentEvents ?? []}
+      />
     </section>
   );
 }

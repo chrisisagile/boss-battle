@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import { buildBattleActivityFeed } from "./lib/battleFeed";
 import { createJoinError, JOIN_ERROR_CODES } from "./lib/joinErrors";
 import type { PriorQuizAssignment } from "./lib/quizRoundSelection";
 import {
@@ -593,6 +594,16 @@ export const getPlayerQuizState = query({
           )
           .collect()
       : [];
+    const battleExchanges = activeRound
+      ? await ctx.db
+          .query("battleExchanges")
+          .withIndex("by_round", (q) => q.eq("roundId", activeRound._id))
+          .collect()
+      : [];
+    const latestExchange =
+      battleExchanges.sort(
+        (left, right) => right.exchangeNumber - left.exchangeNumber,
+      )[0] ?? null;
 
     const playerAssignments = (
       await ctx.db
@@ -744,6 +755,7 @@ export const getPlayerQuizState = query({
             displayName: combatant.displayName,
             fallbackSpriteKey: combatant.fallbackSpriteKey,
             id: combatant._id,
+            maxActionPoints: combatant.actionPointsPerRound,
             maxHealth: combatant.maxHealth,
             nextQuizAdvantage: combatant.nextQuizAdvantage,
             spriteRef: combatant.spriteRef,
@@ -787,6 +799,7 @@ export const getPlayerQuizState = query({
             }))
         : [],
       availableTargets,
+      battleActivity: buildBattleActivityFeed(latestExchange),
       battleStatus,
       joinBlockReason:
         roundParticipant?.status === "removed_disconnected"

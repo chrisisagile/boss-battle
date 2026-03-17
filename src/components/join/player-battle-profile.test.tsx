@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { ActiveThemeProvider } from "@/components/ui/8bit/active-theme";
 import { renderApp, screen } from "@/test/render";
-import { playerCombatantFixture } from "@/test/session-fixtures";
+import {
+  hostOverviewFixture,
+  playerCombatantFixture,
+} from "@/test/session-fixtures";
 import { PlayerBattleProfile } from "./player-battle-profile";
 
 describe("PlayerBattleProfile", () => {
@@ -26,6 +29,36 @@ describe("PlayerBattleProfile", () => {
     expect(screen.getByText("Battle-ready")).toBeInTheDocument();
     expect(screen.getByText("Slash")).toBeInTheDocument();
     expect(screen.getByText("Study Weakness")).toBeInTheDocument();
+  });
+
+  it("shows the shared battle dialogue feed when activity is present", () => {
+    renderApp(
+      <ActiveThemeProvider>
+        <PlayerBattleProfile
+          availableSkills={[...playerCombatantFixture.availableSkills]}
+          battleActivity={hostOverviewFixture.battleActivity}
+          currentActionPoints={playerCombatantFixture.currentActionPoints}
+          currentHealth={playerCombatantFixture.currentHealth}
+          maxActionPoints={3}
+          maxHealth={playerCombatantFixture.maxHealth}
+          name={playerCombatantFixture.displayName}
+          onUseSkill={() => {}}
+          state="active"
+        />
+      </ActiveThemeProvider>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Battle Dialogue" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Obsidian Hydra uses Boss Strike on Ari for 3 damage\./i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mina uses Rally Heal on Ari for 3 health\./i),
+    ).toBeInTheDocument();
   });
 
   it("shows knockout messaging when the player cannot act", () => {

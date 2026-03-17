@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import { buildBattleActivityFeed } from "./lib/battleFeed";
 import { createJoinError, JOIN_ERROR_CODES } from "./lib/joinErrors";
 import {
   isValidJoinCode,
@@ -129,6 +130,16 @@ export const getHostOverview = query({
       .query("gameRounds")
       .withIndex("by_session", (q) => q.eq("sessionId", session._id))
       .collect();
+    const battleExchanges = activeRound
+      ? await ctx.db
+          .query("battleExchanges")
+          .withIndex("by_round", (q) => q.eq("roundId", activeRound._id))
+          .collect()
+      : [];
+    const latestExchange =
+      battleExchanges.sort(
+        (left, right) => right.exchangeNumber - left.exchangeNumber,
+      )[0] ?? null;
     const latestCompletedRound =
       rounds
         .filter((round) => round.status === "completed")
@@ -279,6 +290,7 @@ export const getHostOverview = query({
           : combatant.state,
         state: combatant.state,
       })),
+      battleActivity: buildBattleActivityFeed(latestExchange),
       battleJoinStatus: getBattleJoinStatus(session),
       gamePhase: getGamePhase(session),
       results: session.completedAt

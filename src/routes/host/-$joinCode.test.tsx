@@ -94,6 +94,17 @@ describe("HostSessionPage", () => {
     expect(screen.getByText("Round Status")).toBeInTheDocument();
   });
 
+  it("shows the shared battle dialogue feed for an active encounter", () => {
+    renderApp(<HostSessionPage joinCode="BATTLE" />);
+
+    expect(
+      screen.getByRole("heading", { name: "Battle Dialogue" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mina uses Rally Heal on Ari/i),
+    ).toBeInTheDocument();
+  });
+
   it("renders the unavailable state when the session is missing", () => {
     hostOverviewMock.mockReturnValue(null);
 

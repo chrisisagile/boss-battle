@@ -34,6 +34,12 @@ export interface DefaultBossCatalogEntry {
   status: "ready";
 }
 
+export const STANDARD_PLAYER_MAX_HEALTH = 16;
+export const STANDARD_BOSS_DAMAGE_MULTIPLIER = 1;
+export const STANDARD_ATTACK_DAMAGE = 4;
+export const STANDARD_HEAL_AMOUNT = 3;
+export const STANDARD_GUARD_RECOVERY = 2;
+
 export function scaleBossCombatValues(input: BossScalingInput) {
   const activePlayerCount = Math.max(1, input.activePlayerCount);
   const scaledHealth =
@@ -120,7 +126,7 @@ export function buildDefaultBossCatalog(
       description:
         "A cursed arcade sorcerer that bursts into extra turns once the room gets crowded.",
       baseHealth: 24,
-      baseActionPointsPerRound: 3,
+      baseActionPointsPerRound: 2,
       defaultSpriteRef: null,
       scalingProfile: {
         healthPerPlayer: 2,
@@ -150,7 +156,7 @@ export function buildDefaultBossCatalog(
       description:
         "A corrupted beast king that punishes weak parties with rapid, jagged attack cycles.",
       baseHealth: 22,
-      baseActionPointsPerRound: 3,
+      baseActionPointsPerRound: 2,
       defaultSpriteRef: null,
       scalingProfile: {
         healthPerPlayer: 2,

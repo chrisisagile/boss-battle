@@ -230,20 +230,24 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
         />
       ) : playerQuizState.combatant &&
         joinedPlayer &&
-        ["action_selection", "active_battle"].includes(
+        ["action_selection", "active_battle", "battle_resolution"].includes(
           playerQuizState.battleStatus,
         ) ? (
         <PlayerBattleProfile
           availableSkills={playerQuizState.availableSkills}
           availableTargets={playerQuizState.availableTargets}
+          battleActivity={playerQuizState.battleActivity}
           currentActionPoints={playerQuizState.combatant.currentActionPoints}
           currentHealth={playerQuizState.combatant.currentHealth}
           errorMessage={battleError}
-          maxActionPoints={playerQuizState.combatant.currentActionPoints}
+          maxActionPoints={playerQuizState.combatant.maxActionPoints}
           maxHealth={playerQuizState.combatant.maxHealth}
           name={joinedPlayer.displayName}
           nextQuizAdvantage={playerQuizState.combatant.nextQuizAdvantage}
           onUseSkill={(skillId, targetId) => {
+            if (playerQuizState.battleStatus === "battle_resolution") {
+              return;
+            }
             if (
               !playerQuizState.playerEntryId ||
               !playerQuizState.combatant?.encounterId ||
@@ -283,7 +287,7 @@ export function JoinByCodePage({ joinCode }: { joinCode: string }) {
         />
       ) : joinedPlayer &&
         activeRound &&
-        ["active_quiz", "waiting_for_players", "battle_resolution"].includes(
+        ["active_quiz", "waiting_for_players"].includes(
           playerQuizState.battleStatus,
         ) ? (
         <JoinPageState
