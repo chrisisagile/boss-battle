@@ -1,0 +1,9 @@
+name: hello-cadence
+description: Your first workflow. One step, one echo.
+inputs:
+  greeting:
+    default: hello from the workshop
+steps:
+  - id: greet
+    type: cli
+    run: echo "${{ inputs.greeting }}"
