@@ -8,6 +8,6 @@ code:
 steps:
   - id: agent1
     type: agent
-    prompt: Read ${{ inputs.title }} and ${{ inputs.description }} and create an email notifying our boss of the issue.
+    prompt: Read ${{ inputs.title }} and ${{ inputs.description }} and create an email notifying our boss of the issue. Add the email to an appropriate folder in our project.
     model: openai/gpt-5.5
     harness: opencode
