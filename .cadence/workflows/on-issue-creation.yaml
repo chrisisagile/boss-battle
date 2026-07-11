@@ -1,0 +1,10 @@
+name: on-issue-creation
+inputs:
+  title: {}
+  description: {}
+steps:
+  - id: agent1
+    type: agent
+    prompt: Read ${{ inputs.title }} and ${{ inputs.description }} and create an email notifying our boss of the issue.
+    model: openai/gpt-5.5
+    harness: opencode
