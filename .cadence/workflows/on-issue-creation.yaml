@@ -2,6 +2,9 @@ name: on-issue-creation
 inputs:
   title: {}
   description: {}
+code:
+  - source: chrisisagile-boss-battle
+    mode: read
 steps:
   - id: agent1
     type: agent
