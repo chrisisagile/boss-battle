@@ -1,5 +1,4 @@
 name: on-issue-creation
-description: Opens a Cadence run when a GitHub issue is created.
 inputs:
   title: {}
   description: {}
