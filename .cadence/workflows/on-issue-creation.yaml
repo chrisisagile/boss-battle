@@ -8,11 +8,7 @@ code:
 steps:
   - id: agent1
     type: agent
-    prompt: |-
-      Issue Title: ${{ inputs.title }} 
-      Issue Description: ${{ inputs.description }} 
-
-      create a new issue in the github repo with the title and description and a random sonnet in the description.
+    prompt: Find any file that contains the phrase '${{ inputs.title }}' and create a list of the file and description of what they do. Save that as a markdown file in the docs directory.
     model: anthropic/claude-sonnet-5
     harness: claude
     integrations:
