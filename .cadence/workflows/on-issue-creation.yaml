@@ -8,7 +8,11 @@ code:
 steps:
   - id: agent1
     type: agent
-    prompt: Read ${{ inputs.title }} and ${{ inputs.description }} and create an email notifying our boss of the issue. Add the email to an appropriate folder in our project.
+    prompt: |-
+      Issue Title: ${{ inputs.title }} 
+      Issue Description: ${{ inputs.description }} 
+
+      create a new issue in the github repo with the title and description and a random sonnet in the description.
     model: anthropic/claude-sonnet-5
     harness: claude
     integrations:
