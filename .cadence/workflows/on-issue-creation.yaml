@@ -20,3 +20,7 @@ steps:
     type: git-write
     source: chrisisagile-boss-battle
     message: "feat: create file directory based on  ${{ inputs.title }}"
+  - id: pr1
+    type: pull-request
+    source: chrisisagile-boss-battle
+    title: "feat: Research stuff"
