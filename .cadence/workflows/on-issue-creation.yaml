@@ -4,7 +4,7 @@ inputs:
   description: {}
 code:
   - source: chrisisagile-boss-battle
-    mode: read
+    mode: write
 steps:
   - id: agent1
     type: agent
