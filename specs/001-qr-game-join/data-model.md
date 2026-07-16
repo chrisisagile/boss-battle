@@ -1,7 +1,7 @@
 # Data Model: QR Game Join
 
 ## Stored Entities
-
+64e6
 ### GameSession
 
 **Purpose**: Represents the live session owned by the host display, including
