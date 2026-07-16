@@ -2,6 +2,8 @@
 
 ## Overview
 
+321
+
 The feature extends the existing session/join model with explicit quiz content, round lifecycle, individualized question delivery, answer evaluation, and token accounting.
 
 ## Entities
@@ -11,6 +13,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: The parent record for a live game, already used for join state and now extended to reference quiz progress.
 
 **Fields**:
+
 - `joinCode`
 - `status`: `lobby | in_progress | completed`
 - `joinStatus`: `open | closed`
@@ -23,6 +26,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `completedAt`
 
 **Relationships**:
+
 - Has many `Player Entry` records
 - Has many `Game Round` records
 - Has many `Question Assignment` records through rounds and players
@@ -32,6 +36,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: A player participating in a session, including device identity and current token balance.
 
 **Fields**:
+
 - `sessionId`
 - `deviceId`
 - `displayName`
@@ -43,11 +48,13 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `lastSeenAt`
 
 **Validation rules**:
+
 - `deviceId` must be present and normalized before use
 - `displayName` remains unique per session among joined players
 - `tokenBalance` cannot go below zero in this feature slice
 
 **Relationships**:
+
 - Belongs to one `Game Session`
 - Has many `Question Assignment` records
 - Has many `Player Answer` records
@@ -57,6 +64,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: A reusable question definition available for live selection.
 
 **Fields**:
+
 - `prompt`
 - `acceptedAnswer`
 - `category`
@@ -68,6 +76,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `updatedAt`
 
 **Validation rules**:
+
 - `acceptedAnswer`, `category`, `complexity`, and `tokenReward` are required for `ready` questions
 - `tokenReward` must be a positive whole number
 - `sourceKey` must be unique within the question bank
@@ -77,6 +86,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: The active or historical quiz round for a session.
 
 **Fields**:
+
 - `sessionId`
 - `roundNumber`
 - `status`: `pending | active | completed`
@@ -89,11 +99,13 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `createdByHostAt`
 
 **Validation rules**:
+
 - `questionTarget` must be greater than zero
 - `questionsCompleted` cannot exceed `questionTarget`
 - configuration becomes immutable after `status` changes to `active`
 
 **State transitions**:
+
 - `pending -> active` when the host starts the round
 - `active -> completed` when the configured number of questions completes
 
@@ -102,6 +114,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: The record of a question delivered to one player in one round.
 
 **Fields**:
+
 - `sessionId`
 - `roundId`
 - `playerEntryId`
@@ -113,6 +126,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `awardedTokens`
 
 **Validation rules**:
+
 - One assignment per `(sessionId, playerEntryId, quizQuestionId)` across a single session
 - Assigned question must satisfy the active round's category and complexity rules
 - `awardedTokens` is zero unless the answer is scored correct
@@ -122,6 +136,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 **Purpose**: The player’s submitted answer for a specific assignment.
 
 **Fields**:
+
 - `assignmentId`
 - `sessionId`
 - `roundId`
@@ -132,6 +147,7 @@ The feature extends the existing session/join model with explicit quiz content, 
 - `evaluatedAt`
 
 **Validation rules**:
+
 - At most one finalized answer per assignment
 - Submissions after `expiresAt` are marked `expired` and award zero tokens
 
@@ -146,3 +162,4 @@ The feature extends the existing session/join model with explicit quiz content, 
 - **Host Round Summary**: session + active round + joined players + token balances + remaining question count + round rule visibility
 - **Player Quiz State**: joinable session info + active assignment + answer status + updated token balance
 - **Projector Summary**: roster and token totals for the active session after scoring
+
