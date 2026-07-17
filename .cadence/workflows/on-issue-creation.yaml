@@ -11,8 +11,8 @@ steps:
     prompt: Use the grill-me skill to plan a new feature titled ${{ inputs.title }} based on ${{ inputs.description }}
     model: openai/gpt-5.5
     skills:
+      - grilling
       - grill-me
-      - handoff
     integrations:
       - provider: github
         source: chrisisagile-boss-battle
