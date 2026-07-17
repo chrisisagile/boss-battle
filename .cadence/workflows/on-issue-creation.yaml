@@ -10,7 +10,6 @@ steps:
     type: agent
     prompt: Use the grill-me skill to plan a new feature titled ${{ inputs.title }} based on ${{ inputs.description }}
     model: anthropic/claude-sonnet-5
-    harness: claude
     integrations:
       - provider: github
         source: chrisisagile-boss-battle
