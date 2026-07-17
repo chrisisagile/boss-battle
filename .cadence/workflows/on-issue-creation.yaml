@@ -9,7 +9,7 @@ steps:
   - id: agent1
     type: agent
     prompt: Use the grill-me skill to plan a new feature titled ${{ inputs.title }} based on ${{ inputs.description }}
-    model: anthropic/claude-sonnet-5
+    model: openai/gpt-5.5
     integrations:
       - provider: github
         source: chrisisagile-boss-battle
