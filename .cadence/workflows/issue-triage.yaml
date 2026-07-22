@@ -1,0 +1,43 @@
+name: issue-triage
+description: Investigate an issue, ask for approval, then publish approved findings and mark it ready.
+inputs:
+  issue:
+    description: GitHub issue URL or number
+    required: true
+code:
+  - source: chrisisagile-boss-battle
+    mode: read
+steps:
+  - id: triage
+    type: agent
+    prompt: Triage ${{ inputs.issue }} using the bug-triage skill. Read the issue, repository, Specs, and Context. Return the complete proposed findings without modifying GitHub.
+    skills:
+      - bug-triage
+    integrations:
+      - provider: github
+        source: chrisisagile-boss-battle
+        permissions:
+          issues: read
+  - id: approval
+    type: ask
+    title: Approve the triage findings
+    question: |-
+      Review these findings before Cadence changes the issue:
+
+      ${{ steps.triage.output }}
+    options:
+      - Approve and publish
+      - Stop here
+    timeoutMinutes: 1440
+  - id: publish
+    type: agent
+    when: steps.approval.output == 'Approve and publish'
+    prompt: |-
+      Add the approved findings below as a comment on ${{ inputs.issue }}, then apply the ready label. Do not make any other issue changes.
+
+      ${{ steps.triage.output }}
+    integrations:
+      - provider: github
+        source: chrisisagile-boss-battle
+        permissions:
+          issues: write
