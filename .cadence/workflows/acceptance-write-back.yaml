@@ -1,0 +1,21 @@
+name: acceptance-write-back
+description: Append a note to ACCEPTANCE.md in the repository and open a pull request.
+inputs:
+  note:
+    description: Line appended to ACCEPTANCE.md
+    default: Cadence acceptance run
+code:
+  - source: chrisisagile-boss-battle
+    mode: write
+steps:
+  - id: edit
+    type: agent
+    prompt: "In the checked-out repository workspace, append a single line to ACCEPTANCE.md at the repository root, creating the file if it does not exist. The appended line must read exactly: ${{ inputs.note }} Change no other file and run no other command."
+  - id: commit
+    type: git-write
+    source: chrisisagile-boss-battle
+    message: "chore: record cadence acceptance note"
+  - id: publish
+    type: pull-request
+    source: chrisisagile-boss-battle
+    title: "chore: cadence acceptance note"
